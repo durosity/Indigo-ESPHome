@@ -172,13 +172,53 @@ they don't appear as Indigo devices.
    present or away, which works in HomeKit as an occupancy-style sensor. **Room switch margin** stops it flapping
    between neighbouring rooms.
 
-**Getting an Apple device's IRK.** The usual method is on a Mac signed in to the same Apple ID:
+### Getting an iPhone or Apple Watch IRK
+
+iPhones and Apple Watches don't pair with a Mac over Bluetooth, so their keys can't be read from Keychain Access.
+The reliable way is [irk-capture](https://github.com/DerekSeaman/irk-capture), a free ESPHome package (MIT licence,
+by Derek Seaman) that makes an ESP32 pose as a Bluetooth heart-rate monitor. When your phone or watch pairs with it,
+the device hands over its IRK. It needs ESP-IDF (the default for new boards) and ESPHome 2026.7 or newer.
+
+The capture firmware can't double as a Bluetooth proxy, so use a spare ESP32. Afterwards you can keep it in a
+drawer or reflash it as a proxy.
+
+1. On the board setup page, click **New board**, name it "IRK Capture", choose your board type and create it.
+2. Add this to the end of its YAML, then **Save** and **Validate**:
+
+   ```yaml
+   packages:
+     device:
+       url: https://github.com/DerekSeaman/irk-capture
+       ref: main
+       file: ESPHome Devices/irk-capture-base.yaml
+       refresh: always
+   ```
+
+3. **Flash over USB** with "Add to Indigo" ticked. Its entities appear in Indigo like any other board's.
+4. Pair the device:
+   - **Apple Watch:** on the watch, open **Settings → Bluetooth** and tap **IRK Capture** under health devices.
+   - **iPhone or iPad:** open **Settings → Bluetooth** and tap **IRK Capture**.
+5. In Indigo, **IRK Capture - Status** changes to *captured*, and **IRK Capture - IRK** shows a 32-character key.
+6. Create a **Bluetooth Tracker** device, choose **Identify by: IRK** and paste the key.
+7. Remove "IRK Capture" from the phone's or watch's Bluetooth list. The key doesn't change, so the tracker keeps
+   working.
+
+If "IRK Capture" doesn't appear on the phone or watch, turn its Bluetooth off and on. If it still doesn't show,
+turn on the **IRK Capture - Refresh BLE Identity** device in Indigo, which gives the board a new name that iOS
+treats as a new device. The [irk-capture README](https://github.com/DerekSeaman/irk-capture#troubleshooting-tips)
+has more troubleshooting, including for Android devices.
+
+### Devices that pair with a Mac directly
+
+For devices that do pair with your Mac over Bluetooth, such as an iPad, the IRK is in the Mac's System keychain:
 
 1. Open **Keychain Access** and search for "Bluetooth".
-2. Open the entry for the iPhone or Watch and tick **Show password**. You'll need your Mac password.
-3. Copy the **Remote IRK** value.
+2. Each long ID entry (e.g. `937CC221-…`) is one Bluetooth device. To find which is which, compare the
+   **Account** field's "Public" address with the addresses under **System Information → Bluetooth**.
+3. Open the matching entry and tick **Show password**. You'll need your Mac password.
+4. Copy the **Remote IRK** value.
 
-Paste it as given; base64 or hex both work, and the plugin tries both byte orders.
+Paste a key as given; base64 or hex both work, and the plugin tries both byte orders.
 
 ## Backups and overnight updates
 
