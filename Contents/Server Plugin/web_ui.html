@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESPHome boards – Indigo</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #eef1f5; --panel: #ffffff; --line: #d5dbe3; --ink: #1c2532; --muted: #5d6878;
+  --accent: #2f4ba8; --accent-ink: #ffffff; --accent-soft: #e3e8f7;
+  --ok: #24744a; --warn: #9a6200; --bad: #b0281f; --code-bg: #f6f8fb;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1a2029; --panel: #232b36; --line: #344051; --ink: #e6eaf0; --muted: #9aa6b6;
+    --accent: #8fa6ff; --accent-ink: #141a2b; --accent-soft: #2c3655;
+    --ok: #6fd39b; --warn: #f0b85a; --bad: #ff8a80; --code-bg: #1d242e;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { margin: 0; font-size: 1.25rem; font-weight: 650; letter-spacing: -0.01em; }
+header p { margin: 0; color: var(--muted); font-size: 0.875rem; }
+
+.layout { display: grid; grid-template-columns: 17rem 1fr; min-height: calc(100vh - 4.5rem); }
+nav { border-right: 1px solid var(--line); padding: 1rem 0.75rem; overflow-y: auto; }
+nav h2 { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin: 0.25rem 0.5rem 0.5rem; }
+.board-list { list-style: none; margin: 0; padding: 0; }
+.board-list button { width: 100%; text-align: left; border: 0; background: none; padding: 0.55rem 0.6rem;
+  border-radius: 6px; cursor: pointer; display: grid; gap: 0.1rem; }
+.board-list button:hover { background: var(--accent-soft); }
+.board-list button[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.board-list .bname { font-weight: 600; }
+.board-list .bmeta { font-size: 0.8125rem; color: var(--muted); }
+.dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; margin-right: 0.35rem; background: var(--muted); vertical-align: 0.05rem; }
+.dot.on { background: var(--ok); } .dot.update { background: var(--warn); }
+
+main { padding: 1.25rem 1.5rem 2rem; max-width: 70rem; width: 100%; }
+.empty { color: var(--muted); max-width: 34rem; }
+
+/* The step rail: the one deliberate flourish */
+.rail { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 1.25rem; counter-reset: step; }
+.rail li { list-style: none; position: relative; padding: 2.1rem 0.5rem 0 0; font-size: 0.875rem; color: var(--muted); }
+.rail li::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 0;
+  width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 650; font-size: 0.8125rem; background: var(--panel); border: 2px solid var(--line); color: var(--muted); z-index: 1; }
+.rail li::after { content: ""; position: absolute; top: 0.75rem; left: 1.6rem; right: 0; height: 2px; background: var(--line); }
+.rail li:last-child::after { display: none; }
+.rail li strong { display: block; color: var(--ink); font-weight: 600; }
+.rail li.done::before { content: "✓"; background: var(--ok); border-color: var(--ok); color: var(--panel); }
+.rail li.done::after { background: var(--ok); }
+.rail li.current::before { border-color: var(--accent); color: var(--accent); }
+.rail li.current strong { color: var(--accent); }
+
+section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+section.panel h2 { font-size: 1.0625rem; margin: 0 0 0.25rem; font-weight: 650; }
+section.panel > p { margin: 0 0 0.75rem; color: var(--muted); max-width: 62ch; }
+
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.field { display: grid; gap: 0.25rem; margin-bottom: 0.75rem; max-width: 26rem; }
+.field label { font-size: 0.875rem; font-weight: 600; }
+.field small { color: var(--muted); font-size: 0.8125rem; }
+input[type=text], input[type=password], input[type=search], select {
+  border: 1px solid var(--line); background: var(--code-bg); border-radius: 6px; padding: 0.45rem 0.6rem; min-width: 0; width: 100%; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0 1rem; }
+
+button.primary, button.secondary { border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; font-weight: 600; }
+button.primary { background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); }
+button.secondary { background: transparent; border: 1px solid var(--line); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.board-results { list-style: none; margin: 0.25rem 0 0; padding: 0; max-height: 14rem; overflow-y: auto;
+  border: 1px solid var(--line); border-radius: 6px; }
+.board-results li label { display: flex; gap: 0.5rem; padding: 0.4rem 0.6rem; cursor: pointer; border-bottom: 1px solid var(--line); }
+.board-results li:last-child label { border-bottom: 0; }
+.board-results li label:hover { background: var(--accent-soft); }
+.board-results .maker { color: var(--muted); font-size: 0.8125rem; margin-left: auto; }
+
+textarea.yaml { width: 100%; min-height: 26rem; resize: vertical; font: 13px/1.55 var(--mono); tab-size: 2;
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; white-space: pre; }
+.status-line { font-size: 0.875rem; color: var(--muted); min-height: 1.4rem; }
+.status-line.bad { color: var(--bad); } .status-line.ok { color: var(--ok); }
+
+.flash-choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+.flash-choice > div { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 1rem; }
+.flash-choice h3 { margin: 0 0 0.25rem; font-size: 0.9375rem; }
+.flash-choice p { margin: 0 0 0.75rem; color: var(--muted); font-size: 0.875rem; }
+
+pre.log { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem;
+  font: 12px/1.5 var(--mono); max-height: 22rem; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.log-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem; }
+.badge { font-size: 0.8125rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid currentColor; }
+.badge.running, .badge.queued { color: var(--accent); } .badge.succeeded { color: var(--ok); } .badge.failed { color: var(--bad); }
+.notice { border-left: 3px solid var(--warn); padding: 0.5rem 0.75rem; background: var(--code-bg); margin: 0 0 1rem; border-radius: 0 6px 6px 0; }
+.notice.bad { border-color: var(--bad); }
+[hidden] { display: none !important; }
+
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+  nav { border-right: 0; border-bottom: 1px solid var(--line); }
+  .rail { grid-template-columns: repeat(2, 1fr); row-gap: 1rem; }
+  .rail li:nth-child(2)::after { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rail li::before { transition: background 0.25s, border-color 0.25s; }
+}
+</style>
+<style>
+/* ---- v1.1 additions ---- */
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+.toolbar .spacer { flex: 1; }
+
+.editor { position: relative; display: grid; grid-template-columns: auto 1fr; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--code-bg); height: 30rem; overflow: hidden; }
+.editor.tall { height: 42rem; }
+.gutter { margin: 0; padding: 0.75rem 0.5rem 0.75rem 0.75rem; text-align: right; color: var(--muted); user-select: none;
+  font: 13px/1.55 var(--mono); border-right: 1px solid var(--line); overflow: hidden; white-space: pre; }
+.gutter .err { color: var(--bad); font-weight: 700; }
+.code { position: relative; overflow: hidden; }
+.code pre, .code textarea { position: absolute; inset: 0; margin: 0; padding: 0.75rem; border: 0;
+  font: 13px/1.55 var(--mono); tab-size: 2; white-space: pre; overflow: auto; }
+.code pre { pointer-events: none; color: var(--ink); }
+.code textarea { background: transparent; color: transparent; -webkit-text-fill-color: transparent;
+  caret-color: var(--ink); resize: none; outline: none; }
+.code textarea::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); -webkit-text-fill-color: transparent; }
+.code .k { color: var(--accent); }
+.code .s { color: var(--ok); }
+.code .c { color: var(--muted); font-style: italic; }
+.code .t { color: var(--warn); }
+.code .p { color: var(--bad); font-weight: 600; }
+.code .n, .code .b { color: var(--warn); }
+.code .errline { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+
+.drawer { border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 0.75rem; background: var(--code-bg); }
+.drawer h3 { margin: 0 0 0.5rem; font-size: 0.9375rem; }
+.module-grid { display: grid; grid-template-columns: 15rem 1fr; gap: 1rem; }
+.module-list { list-style: none; margin: 0; padding: 0; max-height: 24rem; overflow-y: auto; }
+.module-list .grp { font-size: 0.75rem; font-weight: 700; color: var(--muted); margin: 0.6rem 0 0.2rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.module-list button { width: 100%; text-align: left; background: none; border: 0; padding: 0.35rem 0.5rem; border-radius: 5px; cursor: pointer; }
+.module-list button:hover, .module-list button[aria-pressed="true"] { background: var(--accent-soft); }
+.module-list button:disabled { opacity: 0.45; cursor: not-allowed; }
+.pin-note { font-size: 0.8125rem; color: var(--muted); }
+pre.preview { margin: 0.5rem 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.6rem;
+  font: 12px/1.5 var(--mono); max-height: 14rem; overflow: auto; white-space: pre; }
+
+.diff { margin: 0; font: 12px/1.5 var(--mono); max-height: 26rem; overflow: auto; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 0.5rem 0; }
+.diff div { padding: 0 0.75rem; white-space: pre; }
+.diff .add { background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.diff .del { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.diff .fold { color: var(--muted); font-style: italic; }
+
+table.simple { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+table.simple th { text-align: left; font-weight: 600; color: var(--muted); padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line); }
+table.simple td { padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.table-wrap { overflow-x: auto; }
+
+pre.log .l1 { color: var(--bad); } pre.log .l2 { color: var(--warn); } pre.log .ts { color: var(--muted); }
+.health { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: 0.875rem; color: var(--muted); margin: 0 0 0.75rem; }
+.health strong { color: var(--ink); font-weight: 600; }
+.secret-names { font: 12px/1.6 var(--mono); color: var(--muted); }
+@media (max-width: 760px) { .module-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>ESPHome boards</h1>
+    <p>Create, configure and flash boards, then add them to Indigo.</p>
+  </div>
+  <div class="header-actions">
+    <button class="secondary" id="discoverBtn" type="button">Find boards</button>
+    <button class="secondary" id="wifiBtn" type="button">Wi-Fi &amp; secrets</button>
+    <button class="primary" id="newBtn" type="button">New board</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav aria-label="Boards">
+    <h2>In Device Builder</h2>
+    <ul class="board-list" id="boardList"></ul>
+    <p class="empty" id="listEmpty" hidden>No configurations yet. Create one with New board.</p>
+  </nav>
+
+  <main id="main">
+    <div class="notice bad" id="globalError" hidden></div>
+
+    <!-- Discovery -->
+    <section class="panel" id="discoverPanel" hidden>
+      <h2>Boards on your network</h2>
+      <p>ESPHome boards announcing themselves on this network. Boards already in Indigo are marked.</p>
+      <div class="table-wrap"><table class="simple" id="discoverTable"></table></div>
+      <div class="row" style="margin-top:0.75rem">
+        <button class="secondary" type="button" id="discoverAgain">Search again</button>
+        <button class="secondary" type="button" data-close="discoverPanel">Close</button>
+        <span class="status-line" id="discoverStatus" role="status"></span>
+      </div>
+    </section>
+
+    <!-- Wi-Fi & secrets -->
+    <section class="panel" id="wifiPanel" hidden>
+      <h2>Wi-Fi &amp; secrets</h2>
+      <p>Stored in Device Builder's secrets file and built into firmware. Values can be set but never shown again. Boards pick up a change the next time they're installed, so update boards <em>before</em> changing your router.</p>
+      <form id="wifiForm" autocomplete="off">
+        <div class="two">
+          <div class="field"><label for="wSsid">Wi-Fi network</label><input type="text" id="wSsid" required></div>
+          <div class="field"><label for="wPsk">Wi-Fi password</label><input type="password" id="wPsk"></div>
+        </div>
+        <div class="row"><button class="primary" type="submit">Save Wi-Fi</button><span class="status-line" id="wifiStatus" role="status"></span></div>
+      </form>
+      <h3 style="margin:1.25rem 0 0.25rem;font-size:0.9375rem">Other secrets</h3>
+      <p class="secret-names" id="secretNames"></p>
+      <form id="secretForm" autocomplete="off">
+        <div class="two">
+          <div class="field"><label for="sKey">Name</label><input type="text" id="sKey" placeholder="ota_password" required></div>
+          <div class="field"><label for="sVal">Value</label><input type="password" id="sVal"></div>
+        </div>
+        <div class="row">
+          <button class="secondary" type="submit">Save secret</button>
+          <button class="secondary" type="button" data-close="wifiPanel">Close</button>
+          <span class="status-line" id="secretStatus" role="status"></span>
+        </div>
+        <small class="pin-note">Use it in YAML as <code>!secret name</code>.</small>
+      </form>
+    </section>
+
+    <!-- New board -->
+    <section class="panel" id="createPanel" hidden>
+      <h2>New board</h2>
+      <p>Device Builder writes a starter configuration with Wi-Fi, OTA updates and an encrypted API key, ready for Indigo.</p>
+      <form id="createForm" autocomplete="off">
+        <div class="two">
+          <div class="field">
+            <label for="fFriendly">Name</label>
+            <input type="text" id="fFriendly" placeholder="Bedroom sensor">
+            <small>How it appears in Indigo.</small>
+          </div>
+          <div class="field">
+            <label for="fName">Node name</label>
+            <input type="text" id="fName" placeholder="bedroom-sensor" pattern="[a-z0-9\-]+" required>
+            <small>Lowercase letters, numbers and hyphens. Becomes bedroom-sensor.local on your network.</small>
+          </div>
+        </div>
+        <div class="field" style="max-width:40rem">
+          <label for="fBoardSearch">Board type</label>
+          <input type="search" id="fBoardSearch" placeholder="Search, e.g. ESP32-S3, D1 mini, ESP32 DevKit">
+          <ul class="board-results" id="boardResults" role="radiogroup" aria-label="Board type"></ul>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="fSsid">Wi-Fi network</label>
+            <input type="text" id="fSsid">
+            <small>Leave blank to reuse the Wi-Fi saved in Device Builder's secrets.</small>
+          </div>
+          <div class="field"><label for="fPsk">Wi-Fi password</label><input type="password" id="fPsk"></div>
+        </div>
+        <div class="row">
+          <button class="primary" type="submit" id="createBtn">Create configuration</button>
+          <button class="secondary" type="button" data-close="createPanel">Cancel</button>
+          <span class="status-line" id="createStatus" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Selected board -->
+    <div id="boardView" hidden>
+      <ol class="rail" id="rail" aria-label="Setup progress">
+        <li id="st1"><strong>Created</strong><span>Configuration exists</span></li>
+        <li id="st2"><strong>Configure</strong><span>Edit and validate YAML</span></li>
+        <li id="st3"><strong>Flash</strong><span>USB first, then wireless</span></li>
+        <li id="st4"><strong>In Indigo</strong><span>Connected and syncing</span></li>
+      </ol>
+
+      <section class="panel">
+        <div class="log-head">
+          <h2 id="cfgTitle"></h2>
+          <span class="status-line" id="cfgMeta"></span>
+        </div>
+        <div class="editor" id="editor">
+          <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+          <div class="code">
+            <pre id="hl" aria-hidden="true"></pre>
+            <textarea id="yaml" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Configuration YAML"></textarea>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="primary" type="button" id="saveBtn">Save</button>
+          <button class="secondary" type="button" id="validateBtn">Validate</button>
+          <button class="secondary" type="button" id="moduleBtn" aria-expanded="false">Add module</button>
+          <button class="secondary" type="button" id="diffBtn" aria-expanded="false">Changes</button>
+          <button class="secondary" type="button" id="historyBtn" aria-expanded="false">History</button>
+          <button class="secondary" type="button" id="revertBtn">Revert</button>
+          <button class="secondary" type="button" id="errJump" hidden></button>
+          <span class="spacer"></span>
+          <span class="status-line" id="yamlStatus" role="status"></span>
+        </div>
+
+        <div class="drawer" id="moduleDrawer" hidden>
+          <div class="module-grid">
+            <ul class="module-list" id="moduleList" aria-label="Modules"></ul>
+            <div id="moduleForm">
+              <p class="pin-note">Pick a module. Pins are checked against this board's chip and what the YAML already uses.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="drawer" id="diffDrawer" hidden>
+          <h3 id="diffTitle">Changes since last install</h3>
+          <div class="diff" id="diffView"></div>
+        </div>
+
+        <div class="drawer" id="historyDrawer" hidden>
+          <h3>Backups</h3>
+          <div class="table-wrap"><table class="simple" id="historyTable"></table></div>
+          <div class="row" style="margin-top:0.5rem">
+            <button class="secondary" type="button" id="backupNowBtn">Back up all boards now</button>
+            <span class="status-line" id="historyStatus" role="status"></span>
+          </div>
+          <div id="historyPreviewWrap" hidden>
+            <h3 id="historyPreviewTitle" style="margin-top:0.75rem"></h3>
+            <div class="diff" id="historyPreview"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Flash firmware</h2>
+        <p>Saving first is automatic. A build takes a few minutes the first time and much less after that.</p>
+        <div class="flash-choice">
+          <div>
+            <h3>Over USB</h3>
+            <p>For a new board. Plug it into this Mac with a data cable.</p>
+            <div class="row">
+              <select id="portSelect" aria-label="USB port"></select>
+              <button class="secondary" type="button" id="portRefresh">Refresh ports</button>
+            </div>
+            <label class="row" style="margin:0.6rem 0"><input type="checkbox" id="autoAdopt" checked> Add to Indigo when it finishes</label>
+            <button class="primary" type="button" id="usbBtn">Flash over USB</button>
+          </div>
+          <div>
+            <h3>Wirelessly</h3>
+            <p>For a board already running ESPHome on your network.</p>
+            <button class="primary" type="button" id="otaBtn">Install wirelessly</button>
+            <button class="secondary" type="button" id="compileBtn">Compile only</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="indigoPanel">
+        <h2>Indigo</h2>
+        <div class="health" id="health" hidden></div>
+        <p id="indigoText"></p>
+        <div class="row">
+          <button class="primary" type="button" id="adoptBtn">Add to Indigo</button>
+          <button class="secondary" type="button" id="logsBtn" hidden>Live logs</button>
+        </div>
+      </section>
+
+      <section class="panel" id="livePanel" hidden>
+        <div class="log-head">
+          <h2>Live logs</h2>
+          <div class="row">
+            <span class="badge running" id="liveBadge">watching</span>
+            <button class="secondary" type="button" id="liveClear">Clear</button>
+            <button class="secondary" type="button" id="liveStop">Stop</button>
+          </div>
+        </div>
+        <pre class="log" id="liveLog" aria-live="off"></pre>
+      </section>
+    </div>
+
+    <section class="panel" id="logPanel" hidden>
+      <div class="log-head">
+        <h2 id="logTitle">Output</h2>
+        <span class="badge" id="logBadge"></span>
+      </div>
+      <pre class="log" id="log" aria-live="polite"></pre>
+    </section>
+
+    <p class="empty" id="welcome">Choose a board on the left, start a new one, or find boards already on your network.</p>
+  </main>
+</div>
+
+<script>
+// ---------------------------------------------------------------- chip pin tables
+// ok: good general-purpose pins. caution: strapping/boot pins (work, but can stop the board booting
+// if something holds them at the wrong level). inputOnly: no output, no pull-ups. adc: ADC1 pins
+// (ADC2 stops working while Wi-Fi is on). i2c: the conventional SDA/SCL pair.
+const CHIPS = {
+  esp32: {
+    label: "ESP32", ok: [4, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33],
+    caution: [0, 2, 5, 12, 15], inputOnly: [34, 35, 36, 39], adc: [32, 33, 34, 35, 36, 39], i2c: [21, 22],
+  },
+  esp32s3: {
+    label: "ESP32-S3", ok: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 38, 39, 40, 41, 42, 47, 48],
+    caution: [0, 3, 45, 46], inputOnly: [], adc: [1, 2, 4, 5, 6, 7, 8, 9, 10], i2c: [8, 9],
+  },
+  esp32c3: {
+    label: "ESP32-C3", ok: [0, 1, 3, 4, 5, 6, 7, 10, 20, 21],
+    caution: [2, 8, 9], inputOnly: [], adc: [0, 1, 2, 3, 4], i2c: [6, 7],
+  },
+  esp8266: {
+    label: "ESP8266", ok: [4, 5, 12, 13, 14],
+    caution: [0, 2, 15, 16], inputOnly: [], adc: [17], i2c: [4, 5],
+  },
+};
+
+function detectChip(yaml) {
+  if (/^esp8266\s*:/m.test(yaml)) return "esp8266";
+  const v = (yaml.match(/^\s+variant:\s*["']?([\w-]+)/m) || [])[1] || "";
+  const board = (yaml.match(/^\s+board:\s*["']?([\w-]+)/m) || [])[1] || "";
+  const id = (v + " " + board).toLowerCase();
+  if (id.includes("s3")) return "esp32s3";
+  if (id.includes("c3")) return "esp32c3";
+  return "esp32";
+}
+
+function pinsInUse(yaml) {
+  const used = new Set();
+  for (const line of yaml.split("\n")) {
+    const code = line.replace(/#.*$/, "");
+    for (const m of code.matchAll(/\bGPIO(\d+)\b/g)) used.add(Number(m[1]));
+  }
+  return used;
+}
+
+// ---------------------------------------------------------------- module library
+// Each module: list-section items (merged into existing `sensor:` etc), whole map-sections
+// (added only if absent), optional api flags, and parameters. {{name}} placeholders.
+const P = (key, label, role, dflt) => ({ key, label, type: "pin", role, default: dflt });
+const T = (key, label, dflt, type = "text") => ({ key, label, type, default: dflt });
+
+const MODULES = [
+  { id: "dht22", group: "Sensors", name: "DHT22 temperature & humidity", blurb: "Cheap 3-pin climate sensor.",
+    params: [T("name", "Name", "Room"), P("pin", "Data pin", "out", 4)],
+    lists: { sensor: `  - platform: dht
+    pin: {{pin}}
+    model: DHT22
+    temperature:
+      name: "{{name}} Temperature"
+    humidity:
+      name: "{{name}} Humidity"
+    update_interval: 60s` } },
+
+  { id: "bme280", group: "Sensors", name: "BME280 temperature, humidity & pressure (I²C)", blurb: "Accurate climate sensor on the I²C bus.",
+    params: [T("name", "Name", "Room"), P("sda", "SDA pin", "i2c-sda"), P("scl", "SCL pin", "i2c-scl"), T("address", "I²C address", "0x76")],
+    maps: { i2c: `i2c:
+  sda: {{sda}}
+  scl: {{scl}}
+  scan: true` },
+    lists: { sensor: `  - platform: bme280_i2c
+    address: {{address}}
+    temperature:
+      name: "{{name}} Temperature"
+    humidity:
+      name: "{{name}} Humidity"
+    pressure:
+      name: "{{name}} Pressure"
+    update_interval: 60s` } },
+
+  { id: "bh1750", group: "Sensors", name: "BH1750 light level (I²C)", blurb: "Ambient light in lux.",
+    params: [T("name", "Name", "Room"), P("sda", "SDA pin", "i2c-sda"), P("scl", "SCL pin", "i2c-scl")],
+    maps: { i2c: `i2c:
+  sda: {{sda}}
+  scl: {{scl}}
+  scan: true` },
+    lists: { sensor: `  - platform: bh1750
+    name: "{{name}} Light Level"
+    address: 0x23
+    update_interval: 30s` } },
+
+  { id: "ds18b20", group: "Sensors", name: "DS18B20 temperature probe", blurb: "Waterproof 1-wire probe. Needs a 4.7 kΩ pull-up on the data line.",
+    params: [T("name", "Name", "Probe"), P("pin", "Data pin", "out", 13)],
+    lists: { one_wire: `  - platform: gpio
+    pin: {{pin}}`, sensor: `  - platform: dallas_temp
+    name: "{{name}} Temperature"
+    update_interval: 60s` } },
+
+  { id: "hx711", group: "Sensors", name: "HX711 load cells (raw + tare)", blurb: "Weight or occupancy from load cells, with a Tare button.",
+    params: [T("name", "Name", "Scale"), T("slug", "Internal id", "scale"), P("dout", "DT pin", "out", 19), P("sck", "SCK pin", "out", 18)],
+    lists: {
+      globals: `  - id: {{slug}}_tare
+    type: float
+    restore_value: true
+    initial_value: "0"`,
+      sensor: `  - platform: hx711
+    id: {{slug}}_raw
+    name: "{{name}} Raw Reading"
+    dout_pin: {{dout}}
+    clk_pin: {{sck}}
+    gain: 128
+    update_interval: 1s
+    entity_category: diagnostic
+    filters:
+      - median:
+          window_size: 5
+          send_every: 1
+  - platform: template
+    name: "{{name}} Load"
+    accuracy_decimals: 0
+    lambda: return fabs(id({{slug}}_raw).state - id({{slug}}_tare));
+    update_interval: 1s
+    filters:
+      - delta: 500`,
+      button: `  - platform: template
+    name: "{{name}} Tare"
+    on_press:
+      - lambda: id({{slug}}_tare) = id({{slug}}_raw).state;` } },
+
+  { id: "adc", group: "Sensors", name: "Analogue input", blurb: "Read a voltage, e.g. a soil-moisture probe or LDR divider.",
+    params: [T("name", "Name", "Analogue"), P("pin", "Pin (ADC)", "adc")],
+    lists: { sensor: `  - platform: adc
+    pin: {{pin}}
+    name: "{{name}}"
+    attenuation: 12db
+    update_interval: 10s` } },
+
+  { id: "ld2410", group: "Sensors", name: "LD2410 mmWave presence", blurb: "Detects people even when still. Connect its TX to the ESP's RX pin and vice versa.",
+    params: [T("name", "Name", "Room"), P("rx", "ESP RX pin (from sensor TX)", "out", 16), P("tx", "ESP TX pin (to sensor RX)", "out", 17)],
+    lists: { uart: `  - id: ld2410_uart
+    rx_pin: {{rx}}
+    tx_pin: {{tx}}
+    baud_rate: 256000
+    parity: NONE
+    stop_bits: 1`,
+      binary_sensor: `  - platform: ld2410
+    has_target:
+      name: "{{name}} Presence"
+    has_moving_target:
+      name: "{{name}} Moving Target"
+    has_still_target:
+      name: "{{name}} Still Target"` },
+    maps: { ld2410: `ld2410:
+  uart_id: ld2410_uart` } },
+
+  { id: "pir", group: "Inputs", name: "PIR motion sensor", blurb: "HC-SR501 / AM312 style motion detector.",
+    params: [T("name", "Name", "Room"), P("pin", "Signal pin", "in", 27)],
+    lists: { binary_sensor: `  - platform: gpio
+    pin: {{pin}}
+    name: "{{name}} Motion"
+    device_class: motion` } },
+
+  { id: "reed", group: "Inputs", name: "Door / window contact", blurb: "Reed switch between the pin and GND.",
+    params: [T("name", "Name", "Door"), P("pin", "Pin", "out", 25)],
+    lists: { binary_sensor: `  - platform: gpio
+    pin:
+      number: {{pin}}
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "{{name}}"
+    device_class: door` } },
+
+  { id: "button", group: "Inputs", name: "Push button", blurb: "A button between the pin and GND.",
+    params: [T("name", "Name", "Button"), P("pin", "Pin", "out", 26)],
+    lists: { binary_sensor: `  - platform: gpio
+    pin:
+      number: {{pin}}
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "{{name}}"
+    filters:
+      - delayed_on_off: 30ms` } },
+
+  { id: "relay", group: "Outputs", name: "Relay", blurb: "Switch mains or low-voltage loads via a relay module.",
+    params: [T("name", "Name", "Relay"), P("pin", "Pin", "out", 23)],
+    lists: { switch: `  - platform: gpio
+    pin: {{pin}}
+    name: "{{name}}"
+    restore_mode: RESTORE_DEFAULT_OFF` } },
+
+  { id: "led", group: "Outputs", name: "Dimmable LED", blurb: "A single LED or LED driver on a PWM pin.",
+    params: [T("name", "Name", "LED"), T("slug", "Internal id", "led"), P("pin", "Pin", "out", 2)],
+    lists: { output: `  - platform: ledc
+    pin: {{pin}}
+    id: {{slug}}_pwm`, light: `  - platform: monochromatic
+    output: {{slug}}_pwm
+    name: "{{name}}"` } },
+
+  { id: "ws2812", group: "Outputs", name: "WS2812 / NeoPixel strip", blurb: "Addressable RGB LEDs (ESP32 family).", chips: ["esp32", "esp32s3", "esp32c3"],
+    params: [T("name", "Name", "LED Strip"), P("pin", "Data pin", "out", 5), T("count", "Number of LEDs", "30", "number")],
+    lists: { light: `  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: {{pin}}
+    num_leds: {{count}}
+    chipset: ws2812
+    name: "{{name}}"
+    effects:
+      - addressable_rainbow:
+      - addressable_twinkle:` } },
+
+  { id: "ha-value", group: "Indigo link", name: "Read an Indigo value", blurb: "Use an Indigo device state or variable on the board, e.g. for a display or local logic. Turn on 'Share Indigo states' in the board's Indigo settings.",
+    params: [T("slug", "Internal id", "indigo_value"), T("entity", "Indigo id", "device.123456789"), T("attribute", "Device state, e.g. brightnessLevel or sensorValue (blank for a variable)", "")],
+    apiFlags: ["homeassistant_states"],
+    lists: { sensor: `  - platform: homeassistant
+    id: {{slug}}
+    entity_id: {{entity}}{{#attribute}}
+    attribute: {{attribute}}{{/attribute}}
+    internal: true` } },
+
+  { id: "ha-onoff", group: "Indigo link", name: "Follow an Indigo on/off device", blurb: "The board knows whether an Indigo device or variable is on - e.g. light an LED when the alarm is set.",
+    params: [T("slug", "Internal id", "indigo_state"), T("entity", "Indigo id", "device.123456789")],
+    apiFlags: ["homeassistant_states"],
+    lists: { binary_sensor: `  - platform: homeassistant
+    id: {{slug}}
+    entity_id: {{entity}}
+    internal: true` } },
+
+  { id: "ha-button", group: "Indigo link", name: "Button runs an Indigo action group", blurb: "A physical button that runs an action group. Turn on 'Allow this board to control Indigo'.",
+    params: [T("name", "Button name", "Bedside Button"), P("pin", "Pin", "out", 33), T("group", "Action group name", "Goodnight")],
+    apiFlags: ["homeassistant_services"],
+    lists: { binary_sensor: `  - platform: gpio
+    pin:
+      number: {{pin}}
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "{{name}}"
+    filters:
+      - delayed_on_off: 30ms
+    on_press:
+      - homeassistant.action:
+          action: indigo.run_action_group
+          data:
+            group: "{{group}}"` } },
+
+  { id: "diagnostics", group: "System", name: "Diagnostics", blurb: "Uptime, Wi-Fi signal and last restart reason - handy for tracking down drop-outs.",
+    params: [],
+    maps: { debug: "debug:" },
+    lists: { sensor: `  - platform: uptime
+    name: "Uptime"
+  - platform: wifi_signal
+    name: "Wi-Fi Signal"
+    update_interval: 30s`, text_sensor: `  - platform: debug
+    reset_reason:
+      name: "Last Restart Reason"` } },
+
+  { id: "btproxy", group: "System", name: "Bluetooth proxy (room presence)", blurb: "Lets this board feed Bluetooth Tracker devices in Indigo. Set the board's room in its Indigo settings.", chips: ["esp32", "esp32s3", "esp32c3"],
+    params: [],
+    maps: { esp32_ble_tracker: `esp32_ble_tracker:
+  scan_parameters:
+    active: false`, bluetooth_proxy: `bluetooth_proxy:
+  active: false` } },
+];
+
+function fillTemplate(text, values) {
+  // {{#key}}...{{/key}} keeps the block only when the value is non-empty
+  text = text.replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (_, k, inner) => (values[k] ? inner : ""));
+  return text.replace(/\{\{(\w+)\}\}/g, (_, k) => (values[k] ?? ""));
+}
+
+// ---------------------------------------------------------------- YAML merging (top-level sections)
+function topLevelIndex(lines, key) {
+  const re = new RegExp("^" + key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:\\s*(#.*)?$");
+  return lines.findIndex((l) => re.test(l));
+}
+
+function sectionEnd(lines, start) {
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^\S/.test(lines[i]) && !/^#/.test(lines[i])) { end = i; break; }
+  }
+  while (end > start + 1 && lines[end - 1].trim() === "") end--;
+  return end;
+}
+
+function entityNames(yaml) {
+  const names = new Set();
+  for (const m of yaml.matchAll(/^\s+name:\s*["']?([^"'\n#]+?)["']?\s*(#.*)?$/gm)) names.add(m[1].trim().toLowerCase());
+  return names;
+}
+function splitItems(block) {
+  const out = [];
+  for (const line of block.split("\n")) {
+    if (/^  - /.test(line) || !out.length) out.push(line); else out[out.length - 1] += "\n" + line;
+  }
+  return out;
+}
+// Names this module would add that clash with entities already in the YAML (for modules where the user picks names)
+function nameClashes(yaml, mod, values) {
+  const existing = entityNames(yaml);
+  const clashes = [];
+  for (const block of Object.values(mod.lists || {})) {
+    for (const m of fillTemplate(block, values).matchAll(/^\s+name:\s*["']?([^"'\n]+?)["']?\s*$/gm)) {
+      if (existing.has(m[1].trim().toLowerCase())) clashes.push(m[1].trim());
+    }
+  }
+  return clashes;
+}
+
+function mergeModule(yaml, mod, values) {
+  let lines = yaml.replace(/\s+$/, "").split("\n");
+  const notes = [];
+  for (const [key, block] of Object.entries(mod.maps || {})) {
+    if (topLevelIndex(lines, key) >= 0) {
+      notes.push(`${key}: already present - kept your existing settings`);
+      continue;
+    }
+    lines.push("", ...fillTemplate(block, values).split("\n"));
+  }
+  const existingNames = entityNames(lines.join("\n"));
+  for (const [key, block] of Object.entries(mod.lists || {})) {
+    let items = [];
+    for (const item of splitItems(fillTemplate(block, values))) {
+      const n = (item.match(/^\s{4}name:\s*["']?([^"'\n]+?)["']?\s*$/m) || [])[1];
+      if (n && existingNames.has(n.toLowerCase())) { notes.push(`skipped "${n}" (already in this YAML)`); continue; }
+      items = items.concat(item.split("\n"));
+    }
+    if (!items.length) continue;
+    const at = topLevelIndex(lines, key);
+    if (at < 0) {
+      lines.push("", key + ":", ...items);
+    } else {
+      const end = sectionEnd(lines, at);
+      lines.splice(end, 0, ...items);
+    }
+  }
+  for (const flag of mod.apiFlags || []) {
+    const at = topLevelIndex(lines, "api");
+    if (at < 0) { lines.push("", "api:", `  ${flag}: true`); continue; }
+    const end = sectionEnd(lines, at);
+    const has = lines.slice(at + 1, end).some((l) => new RegExp("^\\s+" + flag + "\\s*:").test(l));
+    if (!has) lines.splice(at + 1, 0, `  ${flag}: true`);
+  }
+  return { yaml: lines.join("\n") + "\n", notes };
+}
+
+// ---------------------------------------------------------------- line diff (LCS)
+function lineDiff(a, b) {
+  const A = a.split("\n"), B = b.split("\n");
+  const n = Math.min(A.length, 3000), m = Math.min(B.length, 3000);
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (A[i] === B[j]) { out.push([" ", A[i]]); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) out.push(["-", A[i++]]);
+    else out.push(["+", B[j++]]);
+  }
+  while (i < n) out.push(["-", A[i++]]);
+  while (j < m) out.push(["+", B[j++]]);
+  return out;
+}
+
+// ---------------------------------------------------------------- YAML syntax colouring
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function highlightLine(line) {
+  let code = line, comment = "";
+  const hash = line.search(/(^|\s)#/);
+  if (hash >= 0) {
+    const cut = line[hash] === "#" ? hash : hash + 1;
+    // ignore # inside quotes (rough but good enough for ESPHome YAML)
+    const before = line.slice(0, cut);
+    if ((before.split('"').length - 1) % 2 === 0 && (before.split("'").length - 1) % 2 === 0) {
+      code = before; comment = line.slice(cut);
+    }
+  }
+  let html = "";
+  const m = code.match(/^(\s*-?\s*)([A-Za-z0-9_.\-]+)(\s*:)(.*)$/);
+  let rest = code;
+  if (m) { html += esc(m[1]) + `<span class="k">${esc(m[2])}</span>${esc(m[3])}`; rest = m[4]; }
+  else {
+    const d = code.match(/^(\s*-\s*)(.*)$/);
+    if (d) { html += esc(d[1]); rest = d[2]; }
+  }
+  const TOK = /(!secret|!lambda|!include)|("[^"]*"|'[^']*')|\b(GPIO\d+)\b|\b(true|false|yes|no|on|off|null)\b(?=\s*$)|(-?\b\d+(?:\.\d+)?(?:ms|s|min|h|db|Hz)?)\b(?=\s*$|[,\]])/gi;
+  let last = 0;
+  for (const t of rest.matchAll(TOK)) {
+    html += esc(rest.slice(last, t.index));
+    const cls = t[1] ? "t" : t[2] ? "s" : t[3] ? "p" : t[4] ? "b" : "n";
+    html += `<span class="${cls}">${esc(t[0])}</span>`;
+    last = t.index + t[0].length;
+  }
+  html += esc(rest.slice(last));
+  if (comment) html += `<span class="c">${esc(comment)}</span>`;
+  return html;
+}
+
+"use strict";
+const API = location.pathname.replace(/\/ui\/?.*$/, "/api/");
+const $ = (id) => document.getElementById(id);
+let state = { configs: [], ports: [], jobs: [] };
+let selected = null;          // configuration filename
+let original = "";            // YAML as last loaded or saved
+let activeJob = null;
+let pollTimer = null;
+const validated = new Set();  // configurations that passed Validate this session
+
+async function api(op, body, params) {
+  const qs = new URLSearchParams({ op, ...(params || {}) });
+  const opts = body ? { method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ op, ...body }) } : {};
+  const res = await fetch(API + "?" + qs, opts);
+  let data;
+  try { data = await res.json(); } catch { throw new Error(`Indigo returned HTTP ${res.status}`); }
+  if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function setStatus(el, text, kind) { el.textContent = text || ""; el.className = "status-line" + (kind ? " " + kind : ""); }
+function el(tag, props, ...kids) {
+  const n = document.createElement(tag);
+  Object.assign(n, props || {});
+  kids.forEach((k) => n.append(k));
+  return n;
+}
+function showOnly(panelId) {
+  for (const id of ["createPanel", "discoverPanel", "wifiPanel"]) $(id).hidden = id !== panelId;
+  if (panelId) { $("boardView").hidden = true; $("welcome").hidden = true; }
+}
+function showError(text) { $("globalError").textContent = text; $("globalError").hidden = false; }
+
+// ================================================================ list
+async function refresh() {
+  try { state = await api("status"); } catch (e) { showError(e.message); return; }
+  if (!state.builder) showError("Turn on the Device Builder integration in Plugins → ESPHome → Configure, then reload this page.");
+  else if (state.error) showError("Can't reach Device Builder: " + state.error);
+  else $("globalError").hidden = true;
+  renderList();
+  renderPorts();
+  if (selected) renderBoard();
+  if (!activeJob) {
+    const running = state.jobs.find((j) => j.status === "running" || j.status === "queued");
+    if (running) followJob(running.id);
+  }
+}
+
+function renderList() {
+  const list = $("boardList");
+  list.replaceChildren();
+  $("listEmpty").hidden = state.configs.length > 0;
+  for (const c of state.configs) {
+    const online = c.reachability === "online" || Boolean(c.indigo && c.indigo.connected);
+    const dot = el("span", { className: "dot" + (c.updateAvailable ? " update" : online ? " on" : "") });
+    let meta = c.indigo ? (c.indigo.connected ? "In Indigo, connected" : "In Indigo, offline")
+                        : (c.deployedVersion ? "Not in Indigo" : "Not flashed yet");
+    if (c.updateAvailable) meta += ", update available";
+    const btn = el("button", { type: "button" },
+      el("span", { className: "bname" }, dot, c.friendlyName),
+      el("span", { className: "bmeta", textContent: meta }));
+    btn.setAttribute("aria-current", String(c.configuration === selected));
+    btn.addEventListener("click", () => selectConfig(c.configuration));
+    list.append(el("li", {}, btn));
+  }
+}
+
+function renderPorts() {
+  const sel = $("portSelect");
+  const keep = sel.value;
+  sel.replaceChildren();
+  if (!state.ports.length) sel.append(el("option", { value: "", textContent: "No USB serial ports found" }));
+  for (const p of state.ports) {
+    sel.append(el("option", { value: p.device,
+      textContent: p.device + (p.description && p.description !== "n/a" ? ` (${p.description})` : "") }));
+  }
+  if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+}
+
+// ================================================================ editor
+const ed = $("yaml"), hl = $("hl"), gutter = $("gutter");
+let errorLine = null;
+function renderEditor() {
+  const lines = ed.value.split("\n");
+  hl.innerHTML = lines.map((l, i) => {
+    const h = highlightLine(l) || " ";
+    return i + 1 === errorLine ? `<span class="errline">${h}</span>` : h;
+  }).join("\n") + "\n";
+  gutter.innerHTML = lines.map((_, i) => (i + 1 === errorLine ? `<span class="err">${i + 1}</span>` : String(i + 1))).join("\n") + "\n";
+  syncScroll();
+}
+function syncScroll() { hl.scrollTop = ed.scrollTop; hl.scrollLeft = ed.scrollLeft; gutter.scrollTop = ed.scrollTop; }
+ed.addEventListener("input", () => { errorLine = null; renderEditor(); });
+ed.addEventListener("scroll", syncScroll);
+ed.addEventListener("keydown", (e) => {
+  if (e.key === "Tab" && !e.shiftKey) {
+    e.preventDefault();
+    ed.setRangeText("  ", ed.selectionStart, ed.selectionEnd, "end");
+    renderEditor();
+  } else if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); save(); }
+});
+function setYaml(text) { ed.value = text; ed.scrollTop = 0; errorLine = null; renderEditor(); }
+function goToLine(n) {
+  const lines = ed.value.split("\n");
+  const start = lines.slice(0, n - 1).reduce((a, l) => a + l.length + 1, 0);
+  ed.focus();
+  ed.setSelectionRange(start, start + (lines[n - 1] || "").length);
+  const lh = parseFloat(getComputedStyle(ed).lineHeight) || 20;
+  ed.scrollTop = Math.max(0, (n - 6) * lh);
+  errorLine = n;
+  renderEditor();
+}
+
+// ================================================================ one board
+const current = () => state.configs.find((c) => c.configuration === selected);
+
+async function selectConfig(cfg) {
+  if (selected && ed.value !== original && !confirm("Discard unsaved changes?")) return;
+  selected = cfg;
+  showOnly(null);
+  $("welcome").hidden = true;
+  $("boardView").hidden = false;
+  for (const d of ["moduleDrawer", "diffDrawer", "historyDrawer"]) $(d).hidden = true;
+  stopLive();
+  $("errJump").hidden = true;
+  renderList();
+  renderBoard();
+  setStatus($("yamlStatus"), "Loading…");
+  try {
+    original = (await api("yaml", null, { cfg })).content;
+    setYaml(original);
+    setStatus($("yamlStatus"), "");
+  } catch (e) { setStatus($("yamlStatus"), e.message, "bad"); }
+}
+
+function renderBoard() {
+  const c = current();
+  if (!c) return;
+  $("cfgTitle").textContent = c.friendlyName;
+  $("cfgMeta").textContent = [c.configuration, c.platform, c.deployedVersion ? "running " + c.deployedVersion : ""]
+    .filter(Boolean).join(", ");
+  const flashed = Boolean(c.deployedVersion) || c.reachability === "online" || Boolean(c.indigo && c.indigo.connected);
+  const steps = [true, flashed || validated.has(c.configuration), flashed, Boolean(c.indigo && c.indigo.connected)];
+  let currentSet = false;
+  steps.forEach((done, i) => {
+    $("st" + (i + 1)).className = done ? "done" : (!currentSet ? (currentSet = true, "current") : "");
+  });
+  const health = $("health");
+  if (c.indigo) {
+    $("indigoText").textContent = c.indigo.connected
+      ? `“${c.indigo.name}” is connected. Its entities appear in Indigo as separate devices.`
+      : `“${c.indigo.name}” exists in Indigo but isn't connected yet. It connects once the board is on Wi-Fi.`;
+    $("adoptBtn").hidden = true;
+    $("logsBtn").hidden = false;
+    if ("drops24h" in c.indigo) {
+      health.replaceChildren(
+        el("span", {}, "Drops (24h): ", el("strong", { textContent: String(c.indigo.drops24h) })),
+        el("span", {}, "Total: ", el("strong", { textContent: String(c.indigo.dropsTotal) })),
+        el("span", {}, "Follows from Indigo: ", el("strong", { textContent: c.indigo.shareStates ? String(c.indigo.follows) : "off" })),
+        el("span", {}, "Can control Indigo: ", el("strong", { textContent: c.indigo.allowControl ? "yes" : "no" })),
+        el("span", {}, "Bluetooth proxy: ", el("strong", { textContent: c.indigo.bluetooth ? "yes" : "no" })));
+      health.hidden = false;
+    } else health.hidden = true;
+  } else {
+    $("indigoText").textContent = "Creates an ESPHome Board device using this configuration's address and encryption key.";
+    $("adoptBtn").hidden = false;
+    $("logsBtn").hidden = true;
+    health.hidden = true;
+  }
+}
+
+async function save() {
+  const content = ed.value;
+  if (content === original) return true;
+  setStatus($("yamlStatus"), "Saving…");
+  try {
+    await api("save", { cfg: selected, content, expected: original });
+    original = content;
+    setStatus($("yamlStatus"), "Saved", "ok");
+    return true;
+  } catch (e) {
+    const msg = /precondition/i.test(e.message)
+      ? "Someone changed this file in Device Builder since you opened it. Revert to load their version." : e.message;
+    setStatus($("yamlStatus"), msg, "bad");
+    return false;
+  }
+}
+
+// ================================================================ jobs
+async function startJob(mode, extra) {
+  if (activeJob) { setStatus($("yamlStatus"), "Wait for the current build to finish.", "bad"); return; }
+  if (!(await save())) return;
+  $("errJump").hidden = true;
+  try {
+    const { jobId } = await api("job", { cfg: selected, mode, ...(extra || {}) });
+    followJob(jobId, mode === "usb" && $("autoAdopt").checked ? selected : null);
+  } catch (e) { setStatus($("yamlStatus"), e.message, "bad"); }
+}
+
+const MODE_TITLES = { validate: "Validating", compile: "Compiling", install: "Installing wirelessly", usb: "Flashing over USB" };
+
+function findErrorLine(lines, cfg) {
+  const stem = (cfg || "").replace(/\.ya?ml$/, "");
+  for (const l of lines) {
+    const m = l.match(new RegExp(stem.replace(/[-.]/g, "\\$&") + "\\.ya?ml\"?(?:, line |:)(\\d+)"));
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+function followJob(id, adoptCfg) {
+  activeJob = id;
+  setBusy(true);
+  $("logPanel").hidden = false;
+  clearTimeout(pollTimer);
+  const tick = async () => {
+    let job;
+    try { job = await api("job", null, { id }); }
+    catch (e) { pollTimer = setTimeout(tick, 3000); return; }
+    $("logTitle").textContent = `${MODE_TITLES[job.mode] || job.mode} ${job.cfg}`;
+    $("logBadge").textContent = job.status;
+    $("logBadge").className = "badge " + job.status;
+    const log = $("log");
+    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+    log.textContent = job.lines.join("\n") + (job.note && job.status !== "running" ? "\n\n" + job.note.replace(/^ - /, "") : "");
+    if (atBottom) log.scrollTop = log.scrollHeight;
+    if (job.status === "running" || job.status === "queued") { pollTimer = setTimeout(tick, 1200); return; }
+    activeJob = null;
+    setBusy(false);
+    if (job.status === "succeeded") validated.add(job.cfg);
+    if (job.status === "failed" && job.cfg === selected) {
+      const line = findErrorLine(job.lines, job.cfg);
+      if (line) {
+        $("errJump").textContent = `Go to line ${line}`;
+        $("errJump").hidden = false;
+        $("errJump").onclick = () => goToLine(line);
+        errorLine = line;
+        renderEditor();
+      }
+    }
+    if (job.status === "succeeded" && adoptCfg) await adopt(adoptCfg);
+    refresh();
+  };
+  tick();
+}
+
+function setBusy(busy) { for (const id of ["usbBtn", "otaBtn", "compileBtn", "validateBtn"]) $(id).disabled = busy; }
+
+async function adopt(cfg) {
+  try {
+    const r = await api("adopt", { cfg: cfg || selected });
+    $("indigoText").textContent = r.created ? `Added “${r.name}” to Indigo. It connects as soon as the board joins Wi-Fi.`
+                                            : `“${r.name}” is already in Indigo.`;
+    $("adoptBtn").hidden = true;
+    setTimeout(refresh, 4000);
+  } catch (e) { $("indigoText").textContent = "Couldn't add to Indigo: " + e.message; }
+}
+
+// ================================================================ module library
+let activeModule = null;
+function toggleDrawer(id, btnId) {
+  const d = $(id);
+  const open = d.hidden;
+  for (const [other, b] of [["moduleDrawer", "moduleBtn"], ["diffDrawer", "diffBtn"], ["historyDrawer", "historyBtn"]]) {
+    $(other).hidden = true; $(b).setAttribute("aria-expanded", "false");
+  }
+  d.hidden = !open;
+  $(btnId).setAttribute("aria-expanded", String(open));
+  return open;
+}
+
+function renderModuleList() {
+  const chip = detectChip(ed.value);
+  const list = $("moduleList");
+  list.replaceChildren();
+  let group = "";
+  for (const m of MODULES) {
+    if (m.group !== group) { group = m.group; list.append(el("li", { className: "grp", textContent: group })); }
+    const ok = !m.chips || m.chips.includes(chip);
+    const b = el("button", { type: "button", textContent: m.name, disabled: !ok,
+      title: ok ? m.blurb : `Not available on ${CHIPS[chip].label}` });
+    b.setAttribute("aria-pressed", String(activeModule === m.id));
+    b.addEventListener("click", () => { activeModule = m.id; renderModuleList(); renderModuleForm(m); });
+    list.append(el("li", {}, b));
+  }
+}
+
+function pinOptions(role, used, chip) {
+  const c = CHIPS[chip];
+  let good = [...c.ok], caution = [...c.caution];
+  if (role === "in") good = good.concat(c.inputOnly);
+  if (role === "adc") { good = c.adc.filter((p) => !c.caution.includes(p)); caution = c.adc.filter((p) => c.caution.includes(p)); }
+  const groups = [["Free", good.filter((p) => !used.has(p))], ["Use with care (boot/strapping pins)", caution.filter((p) => !used.has(p))],
+                  ["Already used in this YAML", [...good, ...caution].filter((p) => used.has(p))]];
+  return groups;
+}
+
+function existingI2c(yaml) {
+  const lines = yaml.split("\n");
+  const at = topLevelIndex(lines, "i2c");
+  if (at < 0) return null;
+  const block = lines.slice(at + 1, sectionEnd(lines, at)).join("\n");
+  const sda = (block.match(/^\s+-?\s*sda:\s*["']?(GPIO\d+|\d+)/m) || [])[1];
+  const scl = (block.match(/^\s+-?\s*scl:\s*["']?(GPIO\d+|\d+)/m) || [])[1];
+  const norm = (x) => (x ? (/^\d+$/.test(x) ? "GPIO" + x : x) : "?");
+  return { sda: norm(sda), scl: norm(scl) };
+}
+
+function renderModuleForm(m) {
+  const chip = detectChip(ed.value);
+  const used = pinsInUse(ed.value);
+  const form = $("moduleForm");
+  form.replaceChildren(el("h3", { textContent: m.name }), el("p", { className: "pin-note", textContent: m.blurb }));
+  const inputs = {};
+  for (const p of m.params) {
+    const id = "mod_" + p.key;
+    let input;
+    const i2cRole = p.role === "i2c-sda" || p.role === "i2c-scl";
+    const bus = i2cRole ? existingI2c(ed.value) : null;
+    if (bus) {
+      // The module joins the existing I²C bus, so show its pins rather than offering a choice
+      const pin = p.role === "i2c-sda" ? bus.sda : bus.scl;
+      input = el("select", { id, disabled: true });
+      input.append(el("option", { value: pin, textContent: pin + " (existing I²C bus)" }));
+    } else if (p.type === "pin") {
+      input = el("select", { id });
+      for (const [label, pins] of pinOptions(p.role, used, chip)) {
+        if (!pins.length) continue;
+        const og = el("optgroup", { label });
+        for (const pin of pins) og.append(el("option", { value: "GPIO" + pin, textContent: "GPIO" + pin }));
+        input.append(og);
+      }
+      let want = p.default;
+      if (p.role === "i2c-sda") want = CHIPS[chip].i2c[0];
+      if (p.role === "i2c-scl") want = CHIPS[chip].i2c[1];
+      const free = pinOptions(p.role, used, chip)[0][1];
+      if (want == null || used.has(want) || ![...input.options].some((o) => o.value === "GPIO" + want)) want = free[0];
+      if (want != null) input.value = "GPIO" + want;
+    } else {
+      input = el("input", { id, type: p.type === "number" ? "number" : "text", value: p.default });
+    }
+    inputs[p.key] = input;
+    form.append(el("div", { className: "field" }, el("label", { htmlFor: id, textContent: p.label }), input));
+  }
+  if (m.params.some((p) => p.role === "i2c-sda") && existingI2c(ed.value)) {
+    form.append(el("p", { className: "pin-note", textContent: "Shares the I²C bus already in this YAML. Several I²C sensors can sit on the same two pins." }));
+  }
+  const preview = el("pre", { className: "preview" });
+  const values = () => Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, i.value.trim()]));
+  const update = () => {
+    const parts = [];
+    for (const [k, b] of Object.entries(m.maps || {})) parts.push(fillTemplate(b, values()));
+    for (const [k, b] of Object.entries(m.lists || {})) parts.push(k + ":\n" + fillTemplate(b, values()));
+    for (const f of m.apiFlags || []) parts.push(`api:\n  ${f}: true`);
+    preview.textContent = parts.join("\n\n");
+  };
+  Object.values(inputs).forEach((i) => i.addEventListener("input", update));
+  update();
+  const status = el("span", { className: "status-line" });
+  const add = el("button", { type: "button", className: "primary", textContent: "Insert into YAML" });
+  add.addEventListener("click", () => {
+    if (m.params.some((p) => p.key === "name")) {
+      const clashes = nameClashes(ed.value, m, values());
+      if (clashes.length) {
+        setStatus(status, `This YAML already has ${clashes.map((c) => `“${c}”`).join(", ")} - change the Name so each entity is unique.`, "bad");
+        return;
+      }
+    }
+    const r = mergeModule(ed.value, m, values());
+    ed.value = r.yaml;
+    renderEditor();
+    setStatus(status, "Added. Save, then Validate." + (r.notes.length ? " " + r.notes.join("; ") : ""), "ok");
+    renderModuleForm(m);     // refresh pin usage
+  });
+  form.append(preview, el("div", { className: "row" }, add, status));
+}
+
+// ================================================================ changes & history
+function renderDiff(target, a, b, emptyText) {
+  const rows = lineDiff(a, b);
+  target.replaceChildren();
+  if (!rows.some((r) => r[0] !== " ")) { target.append(el("div", { className: "fold", textContent: emptyText })); return; }
+  // show changes with 2 lines of context, folding long unchanged runs
+  const keep = rows.map((r, i) => r[0] !== " " || rows.slice(Math.max(0, i - 2), i + 3).some((x) => x[0] !== " "));
+  let folded = 0;
+  rows.forEach((r, i) => {
+    if (!keep[i]) { folded++; return; }
+    if (folded) { target.append(el("div", { className: "fold", textContent: `… ${folded} unchanged line${folded > 1 ? "s" : ""}` })); folded = 0; }
+    target.append(el("div", { className: r[0] === "+" ? "add" : r[0] === "-" ? "del" : "", textContent: `${r[0]} ${r[1]}` }));
+  });
+  if (folded) target.append(el("div", { className: "fold", textContent: `… ${folded} unchanged lines` }));
+}
+
+async function showChanges() {
+  if (!toggleDrawer("diffDrawer", "diffBtn")) return;
+  const view = $("diffView");
+  view.replaceChildren(el("div", { className: "fold", textContent: "Loading…" }));
+  try {
+    const { content } = await api("last_installed", null, { cfg: selected });
+    if (content == null) {
+      $("diffTitle").textContent = "Changes since last save";
+      renderDiff(view, original, ed.value, "No unsaved changes. (There's no record of an install from this page yet - after the next install, this shows what changed since then.)");
+    } else {
+      $("diffTitle").textContent = "Changes since last install";
+      renderDiff(view, content, ed.value, "No changes since the last install.");
+    }
+  } catch (e) { view.replaceChildren(el("div", { className: "fold", textContent: e.message })); }
+}
+
+async function showHistory() {
+  if (!toggleDrawer("historyDrawer", "historyBtn")) return;
+  $("historyPreviewWrap").hidden = true;
+  const table = $("historyTable");
+  table.replaceChildren(el("tr", {}, el("td", { textContent: "Loading…" })));
+  try {
+    const { backups } = await api("backups", null, { cfg: selected });
+    table.replaceChildren(el("tr", {}, el("th", { textContent: "Saved" }), el("th", { textContent: "Kind" }), el("th", { textContent: "" })));
+    if (!backups.length) table.append(el("tr", {}, el("td", { colSpan: 3, textContent: "No backups yet. They're taken nightly and after each install - or use the button below." })));
+    for (const b of backups) {
+      const view = el("button", { type: "button", className: "secondary", textContent: "Compare" });
+      const restore = el("button", { type: "button", className: "secondary", textContent: "Restore" });
+      view.addEventListener("click", async () => {
+        const { content } = await api("backup", null, { cfg: selected, id: b.id });
+        $("historyPreviewTitle").textContent = `${b.time} → current editor`;
+        renderDiff($("historyPreview"), content, ed.value, "Identical to what's in the editor.");
+        $("historyPreviewWrap").hidden = false;
+      });
+      restore.addEventListener("click", async () => {
+        if (!confirm(`Replace ${selected} with the copy from ${b.time}? The current version is backed up first.`)) return;
+        try {
+          const { content } = await api("restore", { cfg: selected, id: b.id });
+          original = content; setYaml(content);
+          setStatus($("historyStatus"), `Restored the ${b.time} copy. Install it to put it on the board.`, "ok");
+        } catch (e) { setStatus($("historyStatus"), e.message, "bad"); }
+      });
+      table.append(el("tr", {}, el("td", { textContent: b.time }), el("td", { textContent: b.installed ? "Installed" : "Snapshot" }),
+        el("td", {}, el("div", { className: "row" }, view, restore))));
+    }
+  } catch (e) { table.replaceChildren(el("tr", {}, el("td", { textContent: e.message }))); }
+}
+
+// ================================================================ live logs
+let liveTimer = null, liveSince = 0, liveDevice = null;
+function stopLive() { clearTimeout(liveTimer); liveTimer = null; liveDevice = null; $("livePanel").hidden = true; }
+function startLive() {
+  const c = current();
+  if (!c || !c.indigo) return;
+  liveDevice = c.indigo.deviceId; liveSince = 0;
+  $("liveLog").textContent = "Waiting for log lines…\n";
+  $("livePanel").hidden = false;
+  $("livePanel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const tick = async () => {
+    if (liveDevice == null) return;
+    try {
+      const r = await api("logs", null, { deviceId: liveDevice, since: liveSince });
+      $("liveBadge").textContent = r.connected ? "watching" : "board offline";
+      if (r.lines.length) {
+        const box = $("liveLog");
+        if (liveSince === 0) box.textContent = "";
+        const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+        for (const l of r.lines) {
+          box.append(el("span", { className: "ts", textContent: l.time + " " }), el("span", { className: "l" + l.level, textContent: l.text + "\n" }));
+        }
+        while (box.childNodes.length > 1600) box.removeChild(box.firstChild);
+        if (atBottom) box.scrollTop = box.scrollHeight;
+        liveSince = r.last;
+      }
+    } catch (e) { $("liveBadge").textContent = e.message; }
+    liveTimer = setTimeout(tick, 1500);
+  };
+  tick();
+}
+
+// ================================================================ discovery
+async function discoverBoards() {
+  showOnly("discoverPanel");
+  selected = null; renderList();
+  const table = $("discoverTable");
+  setStatus($("discoverStatus"), "Searching the network…");
+  table.replaceChildren();
+  try {
+    const { boards } = await api("discover");
+    setStatus($("discoverStatus"), boards.length ? "" : "No ESPHome boards answered. Boards on another VLAN need mDNS forwarding to be found.");
+    if (!boards.length) return;
+    table.append(el("tr", {}, ...["Board", "Address", "ESPHome", ""].map((t) => el("th", { textContent: t }))));
+    for (const b of boards) {
+      const cell = el("td");
+      if (b.inIndigo) cell.append(el("span", { className: "pin-note", textContent: "In Indigo" }));
+      else if (b.configuration) {
+        const add = el("button", { type: "button", className: "primary", textContent: "Add to Indigo" });
+        add.addEventListener("click", async () => {
+          try { const r = await api("add_discovered", { cfg: b.configuration }); cell.replaceChildren(el("span", { className: "pin-note", textContent: `Added as “${r.name}”` })); refresh(); }
+          catch (e) { cell.replaceChildren(el("span", { className: "status-line bad", textContent: e.message })); }
+        });
+        cell.append(add);
+      } else {
+        const key = el("input", { type: "password", placeholder: "API encryption key (if any)", style: "min-width:14rem" });
+        const add = el("button", { type: "button", className: "primary", textContent: "Add" });
+        add.addEventListener("click", async () => {
+          try {
+            const r = await api("add_discovered", { node: b.node, address: b.host, key: key.value.trim(), name: b.friendlyName });
+            cell.replaceChildren(el("span", { className: "pin-note", textContent: `Added as “${r.name}”` }));
+            refresh();
+          } catch (e) { cell.append(el("div", { className: "status-line bad", textContent: e.message })); }
+        });
+        cell.append(el("div", { className: "row" }, key, add));
+      }
+      table.append(el("tr", {},
+        el("td", {}, el("strong", { textContent: b.friendlyName }), el("div", { className: "pin-note", textContent: b.node + (b.board ? " · " + b.board : "") })),
+        el("td", { textContent: b.address }), el("td", { textContent: b.version || "" }), cell));
+    }
+  } catch (e) { setStatus($("discoverStatus"), e.message, "bad"); }
+}
+
+// ================================================================ Wi-Fi & secrets
+async function openWifi() {
+  showOnly("wifiPanel");
+  selected = null; renderList();
+  $("secretNames").textContent = "Loading…";
+  try {
+    const { names } = await api("secrets");
+    $("secretNames").textContent = names.length ? "Saved: " + names.join(", ") : "No secrets saved yet.";
+  } catch (e) { $("secretNames").textContent = e.message; }
+}
+$("wifiForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  setStatus($("wifiStatus"), "Saving…");
+  try {
+    await api("wifi", { ssid: $("wSsid").value.trim(), password: $("wPsk").value });
+    $("wPsk").value = "";
+    setStatus($("wifiStatus"), "Saved. Install each board again for it to use the new details.", "ok");
+    openWifi();
+  } catch (e) { setStatus($("wifiStatus"), e.message, "bad"); }
+});
+$("secretForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  try {
+    await api("secret", { key: $("sKey").value.trim(), value: $("sVal").value });
+    $("sVal").value = "";
+    setStatus($("secretStatus"), "Saved", "ok");
+    openWifi();
+  } catch (e) { setStatus($("secretStatus"), e.message, "bad"); }
+});
+
+// ================================================================ new board
+let boardSearchTimer = null;
+async function searchBoards() {
+  const q = $("fBoardSearch").value.trim();
+  const list = $("boardResults");
+  try {
+    const { boards } = await api("boards", null, { q });
+    list.replaceChildren();
+    for (const b of boards) {
+      const radio = el("input", { type: "radio", name: "board", value: b.id });
+      list.append(el("li", {}, el("label", {}, radio, el("span", { textContent: b.name }),
+        el("span", { className: "maker", textContent: b.manufacturer || (b.generic ? "Generic" : "") }))));
+    }
+    if (!boards.length) list.append(el("li", {}, el("label", { textContent: "No matching boards" })));
+  } catch (e) { list.replaceChildren(el("li", {}, el("label", { textContent: e.message }))); }
+}
+function openCreate() {
+  showOnly("createPanel");
+  selected = null; renderList();
+  $("fFriendly").focus();
+  if (!$("boardResults").children.length) searchBoards();
+}
+async function createBoard(ev) {
+  ev.preventDefault();
+  const board = document.querySelector('input[name="board"]:checked');
+  if (!board) { setStatus($("createStatus"), "Choose the board type.", "bad"); return; }
+  $("createBtn").disabled = true;
+  setStatus($("createStatus"), "Creating…");
+  try {
+    const r = await api("create", { name: $("fName").value.trim(), friendlyName: $("fFriendly").value.trim(),
+                                    boardId: board.value, ssid: $("fSsid").value.trim(), psk: $("fPsk").value });
+    $("fPsk").value = "";
+    setStatus($("createStatus"), r.warning || "", r.warning ? "bad" : "");
+    await refresh();
+    original = ""; setYaml("");
+    await selectConfig(r.configuration);
+  } catch (e) { setStatus($("createStatus"), e.message, "bad"); }
+  finally { $("createBtn").disabled = false; }
+}
+let nameTouched = false;
+$("fName").addEventListener("input", () => { nameTouched = true; });
+$("fFriendly").addEventListener("input", () => {
+  if (!nameTouched) $("fName").value = $("fFriendly").value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24);
+});
+$("fBoardSearch").addEventListener("input", () => { clearTimeout(boardSearchTimer); boardSearchTimer = setTimeout(searchBoards, 300); });
+
+// ================================================================ wiring
+$("newBtn").addEventListener("click", openCreate);
+$("discoverBtn").addEventListener("click", discoverBoards);
+$("discoverAgain").addEventListener("click", discoverBoards);
+$("wifiBtn").addEventListener("click", openWifi);
+document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => {
+  $(b.dataset.close).hidden = true;
+  if (!selected) $("welcome").hidden = false;
+}));
+$("createForm").addEventListener("submit", createBoard);
+$("saveBtn").addEventListener("click", save);
+$("revertBtn").addEventListener("click", () => selectConfig(selected));
+$("validateBtn").addEventListener("click", () => startJob("validate"));
+$("compileBtn").addEventListener("click", () => startJob("compile"));
+$("otaBtn").addEventListener("click", () => startJob("install"));
+$("usbBtn").addEventListener("click", () => {
+  const port = $("portSelect").value;
+  if (!port) { setStatus($("yamlStatus"), "Plug the board in and choose its USB port.", "bad"); return; }
+  startJob("usb", { port });
+});
+$("portRefresh").addEventListener("click", async () => {
+  try { state.ports = (await api("ports")).ports; renderPorts(); } catch (e) { setStatus($("yamlStatus"), e.message, "bad"); }
+});
+$("adoptBtn").addEventListener("click", () => adopt());
+$("moduleBtn").addEventListener("click", () => { if (toggleDrawer("moduleDrawer", "moduleBtn")) { renderModuleList(); } });
+$("diffBtn").addEventListener("click", showChanges);
+$("historyBtn").addEventListener("click", showHistory);
+$("backupNowBtn").addEventListener("click", async () => {
+  setStatus($("historyStatus"), "Backing up…");
+  try { const r = await api("backup_now", {}); setStatus($("historyStatus"), `${r.saved} changed file(s) saved`, "ok"); $("historyDrawer").hidden = true; showHistory(); }
+  catch (e) { setStatus($("historyStatus"), e.message, "bad"); }
+});
+$("logsBtn").addEventListener("click", startLive);
+$("liveStop").addEventListener("click", stopLive);
+$("liveClear").addEventListener("click", () => { $("liveLog").textContent = ""; });
+window.addEventListener("beforeunload", (e) => { if (selected && ed.value !== original) e.preventDefault(); });
+
+renderEditor();
+refresh();
+setInterval(() => { if (!activeJob) refresh(); }, 30000);
+
+</script>
+</body>
+</html>

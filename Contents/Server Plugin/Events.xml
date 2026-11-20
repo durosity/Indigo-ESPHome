@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<Events>
+    <Event id="espEventReceived">
+        <Name>ESPHome Event Received</Name>
+        <ConfigUI>
+            <Field id="deviceId" type="menu">
+                <Label>Event entity:</Label>
+                <List class="indigo.devices" filter="self.espEvent"/>
+                <CallbackMethod>menu_changed</CallbackMethod>
+            </Field>
+            <Field id="eventType" type="menu" defaultValue="">
+                <Label>Event type:</Label>
+                <List class="self" method="list_event_types" dynamicReload="true"/>
+            </Field>
+        </ConfigUI>
+    </Event>
+    <Event id="buildFinished">
+        <Name>Firmware Build Finished</Name>
+        <ConfigUI>
+            <Field id="deviceId" type="menu" defaultValue="any">
+                <Label>Board:</Label>
+                <List class="self" method="list_boards_any"/>
+            </Field>
+            <Field id="result" type="menu" defaultValue="any">
+                <Label>Result:</Label>
+                <List>
+                    <Option value="any">Any result</Option>
+                    <Option value="success">Succeeded</Option>
+                    <Option value="failure">Failed</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Event>
+    <Event id="boardEvent">
+        <Name>ESPHome Board Event</Name>
+        <ConfigUI>
+            <Field id="deviceId" type="menu" defaultValue="any">
+                <Label>Board:</Label>
+                <List class="self" method="list_boards_any"/>
+            </Field>
+            <Field id="eventName" type="textfield">
+                <Label>Event name:</Label>
+            </Field>
+            <Field id="help" type="label" fontSize="small" alignWithControl="true">
+                <Label>Fired by homeassistant.event in a board's YAML, e.g. esphome.bedside_button (ESPHome requires the esphome. prefix) - enter bedside_button or the full name. Blank = any event. The data is in the board's Last Board Event Data state.</Label>
+            </Field>
+        </ConfigUI>
+    </Event>
+    <Event id="boardOffline">
+        <Name>ESPHome Board Went Offline</Name>
+        <ConfigUI>
+            <Field id="deviceId" type="menu" defaultValue="any">
+                <Label>Board:</Label>
+                <List class="self" method="list_boards_any"/>
+            </Field>
+            <Field id="help" type="label" fontSize="small" alignWithControl="true">
+                <Label>Fires once the board's offline grace period has passed without it reconnecting.</Label>
+            </Field>
+        </ConfigUI>
+    </Event>
+</Events>

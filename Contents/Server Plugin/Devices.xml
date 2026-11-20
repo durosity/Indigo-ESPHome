@@ -1,0 +1,683 @@
+<?xml version="1.0"?>
+<Devices>
+    <Device type="custom" id="espCore">
+        <Name>ESPHome Board</Name>
+        <ConfigUI>
+            <Field id="title" type="label" fontSize="large" fontColor="blue">
+                <Label>ESPHome Board</Label>
+            </Field>
+            <Field id="sep1" type="separator"/>
+            <Field id="address" type="textfield" defaultValue="">
+                <Label>Address:</Label>
+            </Field>
+            <Field id="addressHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>IP address or mDNS name, e.g. 192.168.1.60 or kitchen-sensor.local. A DHCP reservation is recommended.</Label>
+            </Field>
+            <Field id="port" type="textfield" defaultValue="6053">
+                <Label>API port:</Label>
+            </Field>
+            <Field id="encryptionKey" type="textfield" defaultValue="" secure="true">
+                <Label>API encryption key:</Label>
+            </Field>
+            <Field id="keyHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>The api: encryption: key: value from the board's YAML. Leave blank if the board has no encryption.</Label>
+            </Field>
+            <Field id="password" type="textfield" defaultValue="" secure="true">
+                <Label>API password (legacy):</Label>
+            </Field>
+            <Field id="sep2" type="separator"/>
+            <Field id="forwardLogs" type="menu" defaultValue="off">
+                <Label>Show board logs in Indigo:</Label>
+                <List>
+                    <Option value="off">Off</Option>
+                    <Option value="error">Errors only</Option>
+                    <Option value="warn">Warnings and errors</Option>
+                    <Option value="info">Info</Option>
+                    <Option value="debug">Debug (very chatty)</Option>
+                </List>
+            </Field>
+            <Field id="dashboardConfiguration" type="textfield" defaultValue="">
+                <Label>Device Builder config file:</Label>
+            </Field>
+            <Field id="dbHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>Optional, e.g. kitchen-sensor.yaml. Leave blank to match automatically by node name.</Label>
+            </Field>
+            <Field id="sepHealth" type="separator"/>
+            <Field id="graceSeconds" type="textfield" defaultValue="30">
+                <Label>Offline grace period (s):</Label>
+            </Field>
+            <Field id="graceHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>Brief Wi-Fi drops shorter than this are logged but don't mark the board or its devices offline. 0 = report immediately.</Label>
+            </Field>
+            <Field id="sepLink" type="separator"/>
+            <Field id="shareStates" type="checkbox" defaultValue="false">
+                <Label>Indigo link:</Label>
+                <Description>Share Indigo device states and variables with this board</Description>
+            </Field>
+            <Field id="allowControl" type="checkbox" defaultValue="false">
+                <Label></Label>
+                <Description>Allow this board to control Indigo (run action groups, switch devices, set variables)</Description>
+            </Field>
+            <Field id="linkHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>Uses ESPHome's homeassistant platforms - see the module library on the setup page for examples. The YAML also needs api: homeassistant_states / homeassistant_services: true.</Label>
+            </Field>
+            <Field id="bleRoom" type="textfield" defaultValue="">
+                <Label>Room (Bluetooth presence):</Label>
+            </Field>
+            <Field id="bleHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>Used when this board runs bluetooth_proxy. Blank = the board's name.</Label>
+            </Field>
+            <Field id="sep3" type="separator"/>
+            <Field id="syncNow" type="button">
+                <Label>Entities:</Label>
+                <Title>Sync Entities Now</Title>
+                <CallbackMethod>config_sync_now</CallbackMethod>
+            </Field>
+            <Field id="syncHelp" type="label" fontSize="small" alignWithControl="true">
+                <Label>Creates Indigo devices for any entities that don't have one yet. Renaming the Indigo devices is safe.</Label>
+            </Field>
+        </ConfigUI>
+        <States>
+            <State id="connected">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Connected</TriggerLabel>
+                <ControlPageLabel>Connected</ControlPageLabel>
+            </State>
+            <State id="status">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Status</TriggerLabel>
+                <ControlPageLabel>Status</ControlPageLabel>
+            </State>
+            <State id="nodeName">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Node Name</TriggerLabel>
+                <ControlPageLabel>Node Name</ControlPageLabel>
+            </State>
+            <State id="friendlyName">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Display Name (from YAML)</TriggerLabel>
+                <ControlPageLabel>Display Name (from YAML)</ControlPageLabel>
+            </State>
+            <State id="boardModel">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Board Model</TriggerLabel>
+                <ControlPageLabel>Board Model</ControlPageLabel>
+            </State>
+            <State id="boardMaker">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Board Maker</TriggerLabel>
+                <ControlPageLabel>Board Maker</ControlPageLabel>
+            </State>
+            <State id="macAddress">
+                <ValueType>String</ValueType>
+                <TriggerLabel>MAC Address</TriggerLabel>
+                <ControlPageLabel>MAC Address</ControlPageLabel>
+            </State>
+            <State id="connectedAddress">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Connected Address</TriggerLabel>
+                <ControlPageLabel>Connected Address</ControlPageLabel>
+            </State>
+            <State id="firmwareVersion">
+                <ValueType>String</ValueType>
+                <TriggerLabel>ESPHome Version (running)</TriggerLabel>
+                <ControlPageLabel>ESPHome Version (running)</ControlPageLabel>
+            </State>
+            <State id="compilationTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Firmware Compiled</TriggerLabel>
+                <ControlPageLabel>Firmware Compiled</ControlPageLabel>
+            </State>
+            <State id="projectName">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Project Name</TriggerLabel>
+                <ControlPageLabel>Project Name</ControlPageLabel>
+            </State>
+            <State id="projectVersion">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Project Version</TriggerLabel>
+                <ControlPageLabel>Project Version</ControlPageLabel>
+            </State>
+            <State id="apiVersion">
+                <ValueType>String</ValueType>
+                <TriggerLabel>API Version</TriggerLabel>
+                <ControlPageLabel>API Version</ControlPageLabel>
+            </State>
+            <State id="entityCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Entity Count</TriggerLabel>
+                <ControlPageLabel>Entity Count</ControlPageLabel>
+            </State>
+            <State id="serviceCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>API Action Count</TriggerLabel>
+                <ControlPageLabel>API Action Count</ControlPageLabel>
+            </State>
+            <State id="orphanCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Orphaned Device Count</TriggerLabel>
+                <ControlPageLabel>Orphaned Device Count</ControlPageLabel>
+            </State>
+            <State id="lastConnected">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Connected</TriggerLabel>
+                <ControlPageLabel>Last Connected</ControlPageLabel>
+            </State>
+            <State id="dbConfiguration">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Device Builder Configuration</TriggerLabel>
+                <ControlPageLabel>Device Builder Configuration</ControlPageLabel>
+            </State>
+            <State id="dbVersion">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Device Builder ESPHome Version</TriggerLabel>
+                <ControlPageLabel>Device Builder ESPHome Version</ControlPageLabel>
+            </State>
+            <State id="updateAvailable">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Firmware Update Available</TriggerLabel>
+                <ControlPageLabel>Firmware Update Available</ControlPageLabel>
+            </State>
+            <State id="pendingChanges">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Config Changed Since Last Install</TriggerLabel>
+                <ControlPageLabel>Config Changed Since Last Install</ControlPageLabel>
+            </State>
+            <State id="buildStatus">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Build Status</TriggerLabel>
+                <ControlPageLabel>Build Status</ControlPageLabel>
+            </State>
+            <State id="lastBuildResult">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Build Result</TriggerLabel>
+                <ControlPageLabel>Last Build Result</ControlPageLabel>
+            </State>
+            <State id="lastBuildTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Build Time</TriggerLabel>
+                <ControlPageLabel>Last Build Time</ControlPageLabel>
+            </State>
+            <State id="connectedSince">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Connected Since</TriggerLabel>
+                <ControlPageLabel>Connected Since</ControlPageLabel>
+            </State>
+            <State id="lastDisconnect">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Disconnect</TriggerLabel>
+                <ControlPageLabel>Last Disconnect</ControlPageLabel>
+            </State>
+            <State id="disconnectCount">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Disconnects (total)</TriggerLabel>
+                <ControlPageLabel>Disconnects (total)</ControlPageLabel>
+            </State>
+            <State id="dropsLast24h">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Disconnects (last 24h)</TriggerLabel>
+                <ControlPageLabel>Disconnects (last 24h)</ControlPageLabel>
+            </State>
+            <State id="bluetoothProxy">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bluetooth Proxy Available</TriggerLabel>
+                <ControlPageLabel>Bluetooth Proxy Available</ControlPageLabel>
+            </State>
+            <State id="lastBoardEvent">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Board Event</TriggerLabel>
+                <ControlPageLabel>Last Board Event</ControlPageLabel>
+            </State>
+            <State id="lastBoardEventData">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Board Event Data</TriggerLabel>
+                <ControlPageLabel>Last Board Event Data</ControlPageLabel>
+            </State>
+            <State id="lastBoardEventTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Board Event Time</TriggerLabel>
+                <ControlPageLabel>Last Board Event Time</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>status</UiDisplayStateId>
+    </Device>
+
+    <Device type="sensor" id="espSensor" allowUserCreation="false">
+        <Name>ESPHome Numeric Sensor</Name>
+        <States>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="unit">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Unit</TriggerLabel>
+                <ControlPageLabel>Unit</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="sensor" id="espBinarySensor" allowUserCreation="false">
+        <Name>ESPHome On/Off Sensor</Name>
+        <States>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="custom" id="espTextSensor" allowUserCreation="false">
+        <Name>ESPHome Text Sensor</Name>
+        <States>
+            <State id="value">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Value</TriggerLabel>
+                <ControlPageLabel>Value</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>value</UiDisplayStateId>
+    </Device>
+
+    <Device type="relay" id="espSwitch" allowUserCreation="false">
+        <Name>ESPHome Switch Entity</Name>
+        <States>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="relay" id="espButton" allowUserCreation="false">
+        <Name>ESPHome Push Button</Name>
+        <States>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastPressed">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Pressed</TriggerLabel>
+                <ControlPageLabel>Last Pressed</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="dimmer" id="espLight" allowUserCreation="false">
+        <Name>ESPHome Light Entity</Name>
+        <States>
+            <State id="colorMode">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Colour Mode</TriggerLabel>
+                <ControlPageLabel>Colour Mode</ControlPageLabel>
+            </State>
+            <State id="effect">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Effect</TriggerLabel>
+                <ControlPageLabel>Effect</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="dimmer" id="espCover" allowUserCreation="false">
+        <Name>ESPHome Cover / Blind</Name>
+        <States>
+            <State id="operation">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Operation</TriggerLabel>
+                <ControlPageLabel>Operation</ControlPageLabel>
+            </State>
+            <State id="tiltLevel">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Tilt (%)</TriggerLabel>
+                <ControlPageLabel>Tilt (%)</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="dimmer" id="espValve" allowUserCreation="false">
+        <Name>ESPHome Valve</Name>
+        <States>
+            <State id="operation">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Operation</TriggerLabel>
+                <ControlPageLabel>Operation</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="speedcontrol" id="espFan" allowUserCreation="false">
+        <Name>ESPHome Fan</Name>
+        <States>
+            <State id="oscillating">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Oscillating</TriggerLabel>
+                <ControlPageLabel>Oscillating</ControlPageLabel>
+            </State>
+            <State id="direction">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Direction</TriggerLabel>
+                <ControlPageLabel>Direction</ControlPageLabel>
+            </State>
+            <State id="preset">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Preset</TriggerLabel>
+                <ControlPageLabel>Preset</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="relay" id="espLock" allowUserCreation="false">
+        <Name>ESPHome Lock</Name>
+        <States>
+            <State id="lockState">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Lock State</TriggerLabel>
+                <ControlPageLabel>Lock State</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="custom" id="espNumber" allowUserCreation="false">
+        <Name>ESPHome Number</Name>
+        <States>
+            <State id="value">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Value</TriggerLabel>
+                <ControlPageLabel>Value</ControlPageLabel>
+            </State>
+            <State id="minValue">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Minimum</TriggerLabel>
+                <ControlPageLabel>Minimum</ControlPageLabel>
+            </State>
+            <State id="maxValue">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Maximum</TriggerLabel>
+                <ControlPageLabel>Maximum</ControlPageLabel>
+            </State>
+            <State id="step">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Step</TriggerLabel>
+                <ControlPageLabel>Step</ControlPageLabel>
+            </State>
+            <State id="unit">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Unit</TriggerLabel>
+                <ControlPageLabel>Unit</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>value</UiDisplayStateId>
+    </Device>
+
+    <Device type="custom" id="espSelect" allowUserCreation="false">
+        <Name>ESPHome Select</Name>
+        <States>
+            <State id="value">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Selected Option</TriggerLabel>
+                <ControlPageLabel>Selected Option</ControlPageLabel>
+            </State>
+            <State id="options">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Options</TriggerLabel>
+                <ControlPageLabel>Options</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>value</UiDisplayStateId>
+    </Device>
+
+    <Device type="custom" id="espText" allowUserCreation="false">
+        <Name>ESPHome Text</Name>
+        <States>
+            <State id="value">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Value</TriggerLabel>
+                <ControlPageLabel>Value</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>value</UiDisplayStateId>
+    </Device>
+
+    <Device type="thermostat" id="espClimate" allowUserCreation="false">
+        <Name>ESPHome Climate</Name>
+        <States>
+            <State id="mode">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Mode</TriggerLabel>
+                <ControlPageLabel>Mode</ControlPageLabel>
+            </State>
+            <State id="action">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Current Action</TriggerLabel>
+                <ControlPageLabel>Current Action</ControlPageLabel>
+            </State>
+            <State id="fanModeText">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Fan Mode</TriggerLabel>
+                <ControlPageLabel>Fan Mode</ControlPageLabel>
+            </State>
+            <State id="swingMode">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Swing Mode</TriggerLabel>
+                <ControlPageLabel>Swing Mode</ControlPageLabel>
+            </State>
+            <State id="preset">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Preset</TriggerLabel>
+                <ControlPageLabel>Preset</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+    <Device type="custom" id="espEvent" allowUserCreation="false">
+        <Name>ESPHome Event</Name>
+        <States>
+            <State id="lastEventType">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Event</TriggerLabel>
+                <ControlPageLabel>Last Event</ControlPageLabel>
+            </State>
+            <State id="lastEventTime">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Event Time</TriggerLabel>
+                <ControlPageLabel>Last Event Time</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+            <State id="online">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>lastEventType</UiDisplayStateId>
+    </Device>
+
+    <Device type="sensor" id="espBleTracker">
+        <Name>Bluetooth Tracker (ESPHome room presence)</Name>
+        <ConfigUI>
+            <Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true"/>
+            <Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true"/>
+            <Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden="true"/>
+            <Field id="idType" type="menu" defaultValue="mac">
+                <Label>Identify by:</Label>
+                <List>
+                    <Option value="mac">Fixed MAC address (tags, beacons)</Option>
+                    <Option value="irk">IRK (iPhone, Apple Watch, modern phones)</Option>
+                    <Option value="ibeacon">iBeacon UUID</Option>
+                </List>
+            </Field>
+            <Field id="identifier" type="textfield">
+                <Label>MAC / IRK / UUID:</Label>
+            </Field>
+            <Field id="major" type="textfield" visibleBindingId="idType" visibleBindingValue="ibeacon">
+                <Label>Major (optional):</Label>
+            </Field>
+            <Field id="minor" type="textfield" visibleBindingId="idType" visibleBindingValue="ibeacon">
+                <Label>Minor (optional):</Label>
+            </Field>
+            <Field id="awayTimeout" type="textfield" defaultValue="180">
+                <Label>Away after (s):</Label>
+            </Field>
+            <Field id="switchMargin" type="textfield" defaultValue="5">
+                <Label>Room switch margin (dB):</Label>
+            </Field>
+            <Field id="help" type="label" fontSize="small">
+                <Label>Needs at least one ESPHome board running bluetooth_proxy (see the module library). Each board's room is set in its own settings. A larger margin means fewer room changes when you're between two rooms.</Label>
+            </Field>
+        </ConfigUI>
+        <States>
+            <State id="room">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Room</TriggerLabel>
+                <ControlPageLabel>Room</ControlPageLabel>
+            </State>
+            <State id="previousRoom">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Previous Room</TriggerLabel>
+                <ControlPageLabel>Previous Room</ControlPageLabel>
+            </State>
+            <State id="rssi">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Signal (dBm)</TriggerLabel>
+                <ControlPageLabel>Signal (dBm)</ControlPageLabel>
+            </State>
+            <State id="heardBy">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Heard By</TriggerLabel>
+                <ControlPageLabel>Heard By</ControlPageLabel>
+            </State>
+            <State id="lastSeen">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Seen</TriggerLabel>
+                <ControlPageLabel>Last Seen</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>room</UiDisplayStateId>
+    </Device>
+
+</Devices>

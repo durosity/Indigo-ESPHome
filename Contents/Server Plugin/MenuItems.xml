@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<MenuItems>
+    <MenuItem id="syncAll">
+        <Name>Sync Entities for All Boards</Name>
+        <CallbackMethod>menu_sync_all</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="summary">
+        <Name>Log Board Summary</Name>
+        <CallbackMethod>menu_board_summary</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="sep1"/>
+    <MenuItem id="refreshDashboard">
+        <Name>Check Device Builder for Updates</Name>
+        <CallbackMethod>menu_refresh_dashboard</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="updateAll">
+        <Name>Update All Out-of-date Boards</Name>
+        <CallbackMethod>menu_update_all</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="openSetupPage">
+        <Name>Open Board Setup Page...</Name>
+        <CallbackMethod>menu_open_setup_page</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="openDashboard">
+        <Name>Open Device Builder in Browser</Name>
+        <CallbackMethod>menu_open_dashboard</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="backupNow">
+        <Name>Back Up All Board Configurations Now</Name>
+        <CallbackMethod>menu_backup_now</CallbackMethod>
+    </MenuItem>
+    <MenuItem id="sep2"/>
+    <MenuItem id="toggleDebug">
+        <Name>Toggle Debug Logging</Name>
+        <CallbackMethod>menu_toggle_debug</CallbackMethod>
+    </MenuItem>
+</MenuItems>

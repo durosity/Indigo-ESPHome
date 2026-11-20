@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<PluginConfig>
+    <Field id="title" type="label" fontSize="large" fontColor="blue">
+        <Label>ESPHome</Label>
+    </Field>
+    <Field id="sep0" type="separator"/>
+    <Field id="entityHeader" type="label" fontColor="blue">
+        <Label>Entity devices</Label>
+    </Field>
+    <Field id="autoCreateEntities" type="checkbox" defaultValue="true">
+        <Label>Auto-create:</Label>
+        <Description>Create Indigo devices for new entities whenever a board connects</Description>
+    </Field>
+    <Field id="includeDisabledEntities" type="checkbox" defaultValue="false">
+        <Label>Hidden entities:</Label>
+        <Description>Also create entities marked disabled_by_default in YAML</Description>
+    </Field>
+    <Field id="entityFolderMode" type="menu" defaultValue="board">
+        <Label>Put new devices in:</Label>
+        <List>
+            <Option value="board">A folder named after the board</Option>
+            <Option value="same">The same folder as the board</Option>
+        </List>
+    </Field>
+    <Field id="sep1" type="separator"/>
+    <Field id="dbHeader" type="label" fontColor="blue">
+        <Label>ESPHome Device Builder (firmware updates)</Label>
+    </Field>
+    <Field id="dbEnabled" type="checkbox" defaultValue="false">
+        <Label>Enable:</Label>
+        <Description>Use a Device Builder (ESPHome 2026.6+ dashboard) to validate, compile and install firmware</Description>
+    </Field>
+    <Field id="dbUrl" type="textfield" defaultValue="http://localhost:6052" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>URL:</Label>
+    </Field>
+    <Field id="dbUsername" type="textfield" defaultValue="" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Username:</Label>
+    </Field>
+    <Field id="dbPassword" type="textfield" defaultValue="" secure="true" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Password:</Label>
+    </Field>
+    <Field id="dbAuthHelp" type="label" fontSize="small" alignWithControl="true" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Leave blank if the Device Builder has no login.</Label>
+    </Field>
+    <Field id="otaTarget" type="menu" defaultValue="ip" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Install to:</Label>
+        <List>
+            <Option value="ip">The address Indigo is connected to (best for Docker on macOS)</Option>
+            <Option value="ota">Let Device Builder find the board (mDNS)</Option>
+        </List>
+    </Field>
+    <Field id="iwsUrl" type="textfield" defaultValue="http://localhost:8176" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Indigo web server URL:</Label>
+    </Field>
+    <Field id="iwsHelp" type="label" fontSize="small" alignWithControl="true" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Used by Plugins → ESPHome → Open Board Setup Page. The page itself is at /message/com.durosity.indigoplugin.esphome/ui/ on this server.</Label>
+    </Field>
+    <Field id="dbPollMinutes" type="textfield" defaultValue="60" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Check for updates every (minutes):</Label>
+    </Field>
+    <Field id="sepBk" type="separator" visibleBindingId="dbEnabled" visibleBindingValue="true"/>
+    <Field id="bkHeader" type="label" fontColor="blue" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Backups and overnight updates</Label>
+    </Field>
+    <Field id="backupNightly" type="checkbox" defaultValue="true" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Nightly backup:</Label>
+        <Description>Keep dated copies of every board's YAML (only when changed)</Description>
+    </Field>
+    <Field id="backupKeep" type="textfield" defaultValue="30" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Copies to keep per board:</Label>
+    </Field>
+    <Field id="dbConfigFolder" type="textfield" defaultValue="" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Device Builder config folder:</Label>
+    </Field>
+    <Field id="folderHelp" type="label" fontSize="small" alignWithControl="true" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Optional: the folder on this Mac mapped to /config (e.g. ~/docker/esphome/esphome-config). Lets backups include secrets.yaml, which the Device Builder never sends over its API.</Label>
+    </Field>
+    <Field id="autoUpdate" type="checkbox" defaultValue="false" visibleBindingId="dbEnabled" visibleBindingValue="true">
+        <Label>Overnight updates:</Label>
+        <Description>Install ESPHome updates on out-of-date boards automatically</Description>
+    </Field>
+    <Field id="autoUpdateStart" type="textfield" defaultValue="03:00" visibleBindingId="autoUpdate" visibleBindingValue="true">
+        <Label>Between:</Label>
+    </Field>
+    <Field id="autoUpdateEnd" type="textfield" defaultValue="05:00" visibleBindingId="autoUpdate" visibleBindingValue="true">
+        <Label>and:</Label>
+    </Field>
+    <Field id="sep2" type="separator"/>
+    <Field id="debugHeader" type="label" fontColor="blue">
+        <Label>Logging</Label>
+    </Field>
+    <Field id="showDebugInfo" type="checkbox" defaultValue="false">
+        <Label>Debug:</Label>
+        <Description>Verbose logging in the Indigo Event Log</Description>
+    </Field>
+    <Field id="libraryDebug" type="checkbox" defaultValue="false">
+        <Label>Library debug:</Label>
+        <Description>aioesphomeapi protocol logging (plugin log file only)</Description>
+    </Field>
+</PluginConfig>

@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<Actions>
+    <Action id="setNumber" deviceFilter="self.espNumber" uiPath="DeviceActions">
+        <Name>Set ESPHome Number</Name>
+        <CallbackMethod>action_set_number</CallbackMethod>
+        <ConfigUI>
+            <Field id="value" type="textfield">
+                <Label>Value:</Label>
+            </Field>
+            <Field id="help" type="label" fontSize="small" alignWithControl="true">
+                <Label>Variable and state substitution works, e.g. %%v:12345%%</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="setSelect" deviceFilter="self.espSelect" uiPath="DeviceActions">
+        <Name>Set ESPHome Select Option</Name>
+        <CallbackMethod>action_set_select</CallbackMethod>
+        <ConfigUI>
+            <Field id="option" type="menu">
+                <Label>Option:</Label>
+                <List class="self" method="list_select_options" dynamicReload="true"/>
+            </Field>
+            <Field id="optionText" type="textfield">
+                <Label>...or option text:</Label>
+            </Field>
+            <Field id="help" type="label" fontSize="small" alignWithControl="true">
+                <Label>Text overrides the menu and supports substitution.</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="setText" deviceFilter="self.espText" uiPath="DeviceActions">
+        <Name>Set ESPHome Text</Name>
+        <CallbackMethod>action_set_text</CallbackMethod>
+        <ConfigUI>
+            <Field id="value" type="textfield">
+                <Label>Text:</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="pressButton" deviceFilter="self.espButton" uiPath="DeviceActions">
+        <Name>Press ESPHome Button</Name>
+        <CallbackMethod>action_press_button</CallbackMethod>
+    </Action>
+    <Action id="sepEntity1"/>
+    <Action id="lightTransition" deviceFilter="self.espLight" uiPath="DeviceActions">
+        <Name>Set Light Brightness with Transition</Name>
+        <CallbackMethod>action_light_transition</CallbackMethod>
+        <ConfigUI>
+            <Field id="brightness" type="textfield" defaultValue="100">
+                <Label>Brightness (0-100):</Label>
+            </Field>
+            <Field id="transition" type="textfield" defaultValue="1">
+                <Label>Transition (seconds):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="lightEffect" deviceFilter="self.espLight" uiPath="DeviceActions">
+        <Name>Set Light Effect</Name>
+        <CallbackMethod>action_light_effect</CallbackMethod>
+        <ConfigUI>
+            <Field id="effect" type="menu">
+                <Label>Effect:</Label>
+                <List class="self" method="list_light_effects" dynamicReload="true"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="stopCover" deviceFilter="self.espCover" uiPath="DeviceActions">
+        <Name>Stop Cover</Name>
+        <CallbackMethod>action_stop_cover</CallbackMethod>
+    </Action>
+    <Action id="setCoverTilt" deviceFilter="self.espCover" uiPath="DeviceActions">
+        <Name>Set Cover Tilt</Name>
+        <CallbackMethod>action_set_cover_tilt</CallbackMethod>
+        <ConfigUI>
+            <Field id="tilt" type="textfield" defaultValue="50">
+                <Label>Tilt (0-100):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="stopValve" deviceFilter="self.espValve" uiPath="DeviceActions">
+        <Name>Stop Valve</Name>
+        <CallbackMethod>action_stop_cover</CallbackMethod>
+    </Action>
+    <Action id="fanOptions" deviceFilter="self.espFan" uiPath="DeviceActions">
+        <Name>Set Fan Options</Name>
+        <CallbackMethod>action_fan_options</CallbackMethod>
+        <ConfigUI>
+            <Field id="oscillation" type="menu" defaultValue="">
+                <Label>Oscillation:</Label>
+                <List>
+                    <Option value="">- no change -</Option>
+                    <Option value="on">On</Option>
+                    <Option value="off">Off</Option>
+                </List>
+            </Field>
+            <Field id="direction" type="menu" defaultValue="">
+                <Label>Direction:</Label>
+                <List>
+                    <Option value="">- no change -</Option>
+                    <Option value="forward">Forward</Option>
+                    <Option value="reverse">Reverse</Option>
+                </List>
+            </Field>
+            <Field id="preset" type="menu" defaultValue="">
+                <Label>Preset:</Label>
+                <List class="self" method="list_fan_presets" dynamicReload="true"/>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="lockCommand" deviceFilter="self.espLock" uiPath="DeviceActions">
+        <Name>Lock Command (with code / open)</Name>
+        <CallbackMethod>action_lock_command</CallbackMethod>
+        <ConfigUI>
+            <Field id="command" type="menu" defaultValue="lock">
+                <Label>Command:</Label>
+                <List>
+                    <Option value="lock">Lock</Option>
+                    <Option value="unlock">Unlock</Option>
+                    <Option value="open">Open (unlatch)</Option>
+                </List>
+            </Field>
+            <Field id="code" type="textfield" secure="true">
+                <Label>Code (if required):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="climateOptions" deviceFilter="self.espClimate" uiPath="DeviceActions">
+        <Name>Set Climate Options</Name>
+        <CallbackMethod>action_climate_options</CallbackMethod>
+        <ConfigUI>
+            <Field id="preset" type="menu" defaultValue="">
+                <Label>Preset:</Label>
+                <List class="self" method="list_climate_presets" dynamicReload="true"/>
+            </Field>
+            <Field id="fanMode" type="menu" defaultValue="">
+                <Label>Fan mode:</Label>
+                <List class="self" method="list_climate_fan_modes" dynamicReload="true"/>
+            </Field>
+            <Field id="swingMode" type="menu" defaultValue="">
+                <Label>Swing:</Label>
+                <List>
+                    <Option value="">- no change -</Option>
+                    <Option value="off">Off</Option>
+                    <Option value="both">Both</Option>
+                    <Option value="vertical">Vertical</Option>
+                    <Option value="horizontal">Horizontal</Option>
+                </List>
+            </Field>
+            <Field id="targetHumidity" type="textfield">
+                <Label>Target humidity (%):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="sepBoard"/>
+    <Action id="runApiAction">
+        <Name>Run ESPHome API Action</Name>
+        <CallbackMethod>action_run_api_action</CallbackMethod>
+        <ConfigUI>
+            <Field id="coreId" type="menu">
+                <Label>Board:</Label>
+                <List class="indigo.devices" filter="self.espCore"/>
+                <CallbackMethod>menu_changed</CallbackMethod>
+            </Field>
+            <Field id="service" type="menu">
+                <Label>API action:</Label>
+                <List class="self" method="list_api_actions" dynamicReload="true"/>
+            </Field>
+            <Field id="arguments" type="textfield">
+                <Label>Arguments:</Label>
+            </Field>
+            <Field id="help" type="label" fontSize="small" alignWithControl="true">
+                <Label>name=value pairs separated by ; (e.g. brightness=80; colour=red) or a JSON object. Arrays: comma-separated. Substitution supported.</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="reconnect" deviceFilter="self.espCore" uiPath="DeviceActions">
+        <Name>Reconnect Board</Name>
+        <CallbackMethod>action_reconnect</CallbackMethod>
+    </Action>
+    <Action id="syncEntities" deviceFilter="self.espCore" uiPath="DeviceActions">
+        <Name>Sync Board Entities</Name>
+        <CallbackMethod>action_sync_entities</CallbackMethod>
+    </Action>
+    <Action id="sepFirmware"/>
+    <Action id="validateFirmware" deviceFilter="self.espCore" uiPath="DeviceActions">
+        <Name>Validate Board Configuration (Device Builder)</Name>
+        <CallbackMethod>action_validate</CallbackMethod>
+    </Action>
+    <Action id="compileFirmware" deviceFilter="self.espCore" uiPath="DeviceActions">
+        <Name>Compile Board Firmware (Device Builder)</Name>
+        <CallbackMethod>action_compile</CallbackMethod>
+    </Action>
+    <Action id="installFirmware" deviceFilter="self.espCore" uiPath="DeviceActions">
+        <Name>Compile and Install Firmware OTA (Device Builder)</Name>
+        <CallbackMethod>action_install</CallbackMethod>
+    </Action>
+    <Action id="refreshDashboard">
+        <Name>Check Device Builder for Updates</Name>
+        <CallbackMethod>action_refresh_dashboard</CallbackMethod>
+    </Action>
+    <Action id="updateAll">
+        <Name>Update All Out-of-date Boards</Name>
+        <CallbackMethod>action_update_all</CallbackMethod>
+    </Action>
+    <Action id="ui" uiPath="hidden">
+        <Name>Board setup page</Name>
+        <CallbackMethod>web_page</CallbackMethod>
+    </Action>
+    <Action id="api" uiPath="hidden">
+        <Name>Board setup API</Name>
+        <CallbackMethod>web_api</CallbackMethod>
+    </Action>
+</Actions>
